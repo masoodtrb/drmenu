@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  // output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -14,8 +14,124 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model AuditLogEntries {
+  storeId   String?  @map("store_id")
+  id        String   @id @default(cuid())
+  payload   Json?    @db.Json
+  createdAt DateTime @default(now()) @map("created_at")
+  ipAddress String   @default("") @map("ip_address") @db.VarChar(64)
+
+  @@index([storeId], map: "audit_logs_instance_id_idx")
+  @@map("audit_log_entries")
+}
+
+enum Role {
+  ADMIN
+  STORE_ADMIN
+}
+
 model User {
-  id       String @id @default(cuid())
-  username String @unique
-  password String
+  id          String        @id @default(cuid())
+  username    String        @unique
+  password    String
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
+  Profile     Profile?
+  role        Role          @default(STORE_ADMIN)
+  Store       Store[]
+  StoreBranch StoreBranch[]
+
+  @@map("user")
+}
+
+model Profile {
+  id         String    @id @default(cuid())
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String    @unique
+  firstName  String    @map("first_name")
+  lastName   String    @map("last_name")
+  nationalId String?   @unique @map("national_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  @@map("profile")
+}
+
+model StoreType {
+  id        String    @id @default(cuid())
+  title     String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  Store     Store[]
+
+  @@map("store_type")
+}
+
+model Store {
+  id          String        @id @default(cuid())
+  title       String
+  active      Boolean?      @default(false)
+  userId      String
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
+  storeTypeId String
+  user        User          @relation(fields: [userId], references: [id])
+  storeType   StoreType     @relation(fields: [storeTypeId], references: [id])
+  StoreBranch StoreBranch[]
+
+  @@map("store")
+}
+
+model StoreBranch {
+  id          String     @id @default(cuid())
+  title       String
+  description String     @db.Text
+  active      Boolean?   @default(false)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
+  store       Store      @relation(fields: [storeId], references: [id])
+  storeId     String
+  owner       User       @relation(fields: [userId], references: [id])
+  Category    Category[]
+  userId      String
+
+  @@map("store_branch")
+}
+
+model Category {
+  id          String @id @default(cuid())
+  title       String
+  icon        String
+  description String @db.Text
+
+  active        Boolean?    @default(false)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  deletedAt     DateTime?   @map("deleted_at")
+  branch        StoreBranch @relation(fields: [storeBranchId], references: [id])
+  storeBranchId String
+  Item          Item[]
+
+  @@map("category")
+}
+
+model Item {
+  id          String @id @default(cuid())
+  title       String
+  icon        String
+  description String @db.Text
+
+  active     Boolean?  @default(false)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+  category   Category  @relation(fields: [categoryId], references: [id])
+  categoryId String
+
+  @@map("item")
 }

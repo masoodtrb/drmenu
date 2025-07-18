@@ -6,16 +6,12 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { TRPCError, initTRPC } from "@trpc/server";
+import { initTRPC } from "@trpc/server";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { appRouter } from "./api";
-import { createTRPCProxyClient } from "@trpc/client";
-import { transformer } from "../shared";
 import { makeQueryClient } from "../client/queryClient";
-import { createHydrationHelpers } from "@trpc/react-query/rsc";
 
 // import { db } from "~/server/db";
 // import { getUserAsAdmin } from "../supabase/supabaseClient";
@@ -35,7 +31,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
   return {
     ...opts,
-    // db,
+    db: prisma,
     // user,
   };
 };
