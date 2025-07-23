@@ -41,6 +41,7 @@ model User {
   role        Role          @default(STORE_ADMIN)
   Store       Store[]
   StoreBranch StoreBranch[]
+  Otp         Otp[]
 
   @@map("user")
 }
@@ -57,6 +58,28 @@ model Profile {
   deletedAt  DateTime? @map("deleted_at")
 
   @@map("profile")
+}
+
+model Otp {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  identifier String // Email or phone
+  otp        String
+  type       OtpType
+  expiresAt  DateTime
+  used       Boolean  @default(false)
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([identifier, type])
+  @@map("otp")
+}
+
+enum OtpType {
+  LOGIN
+  PASSWORD_RESET
+  SIGNUP
 }
 
 model StoreType {

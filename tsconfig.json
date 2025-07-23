@@ -33,6 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
+    "**/*.d.ts",
     "src/database/seeds/user.mj",
     "src/database/seeds/index.mjs"
   ],

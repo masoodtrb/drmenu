@@ -12,6 +12,8 @@ import { cache } from "react";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { makeQueryClient } from "../client/queryClient";
+import otpWorker from "./queue/otpWorker";
+import { prisma as db } from "./db";
 
 // import { db } from "~/server/db";
 // import { getUserAsAdmin } from "../supabase/supabaseClient";
@@ -28,10 +30,9 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   const authToken = headers.get("authorization");
 
   //   const { user } = authToken ? await getUserAsAdmin(authToken) : { user: null };
-
   return {
     ...opts,
-    db: prisma,
+    db,
     // user,
   };
 };

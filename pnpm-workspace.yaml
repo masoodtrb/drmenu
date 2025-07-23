@@ -3,6 +3,7 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - '@tailwindcss/oxide'
   - bcrypt
+  - msgpackr-extract
   - node
   - prisma
   - sharp

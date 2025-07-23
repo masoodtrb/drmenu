@@ -39,7 +39,10 @@ services:
       - postgres
     networks:
       - postgres_network
-
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
 volumes:
   postgres_data:
   pgadmin_data:

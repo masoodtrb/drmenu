@@ -1,12 +1,18 @@
 import { trpc } from "@/trpc/server/api";
 import Image from "next/image";
 import HomePage from "./_modules/HomePage";
+import { OtpQueue } from "@/trpc/server/queue/otpQueue";
 
 export default async function Home() {
+  const q = new OtpQueue();
+
+  q.addJob({
+    otp: '12345', userId: '12423423', username: '09053352755'
+  })
 
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <HomePage />
+      {/* <HomePage /> */}
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <Image
           className="dark:invert"

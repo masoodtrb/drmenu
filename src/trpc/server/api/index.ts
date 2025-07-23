@@ -6,9 +6,14 @@ import {
 } from "@/trpc/server";
 import { testRouter } from "./router/test";
 import { createHydrationHelpers } from "@trpc/react-query/rsc";
+import { authRouter } from "./router/auth";
+import otpWorker from "../queue/otpWorker";
+
+console.log("running");
 
 export const appRouter = createTRPCRouter({
   test: testRouter,
+  auth: authRouter,
 });
 
 export type AppRouter = typeof appRouter;
