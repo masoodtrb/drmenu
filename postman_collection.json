@@ -1,0 +1,570 @@
+{
+  "info": {
+    "name": "drMenu API Collection",
+    "description": "Complete API collection for drMenu application with tRPC endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "storeAdminToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Test",
+      "item": [
+        {
+          "name": "Get Hello",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/test.getHello",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "test.getHello"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"username\": \"testuser\",\n      \"password\": \"password123\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/auth.signUp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "auth.signUp"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"username\": \"admin\",\n      \"password\": \"Aa123456\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/auth.login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "auth.login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.result.data.token) {",
+                  "        pm.collectionVariables.set('authToken', response.result.data.token);",
+                  "        if (response.result.data.role === 'ADMIN') {",
+                  "            pm.collectionVariables.set('adminToken', response.result.data.token);",
+                  "        } else if (response.result.data.role === 'STORE_ADMIN') {",
+                  "            pm.collectionVariables.set('storeAdminToken', response.result.data.token);",
+                  "        }",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"username\": \"testuser\",\n      \"otp\": \"123456\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/auth.verifyUser",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "auth.verifyUser"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/profile.me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "profile.me"]
+            }
+          }
+        },
+        {
+          "name": "Get Admin Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/profile.adminMe",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "profile.adminMe"]
+            }
+          }
+        },
+        {
+          "name": "Create Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"nationalId\": \"1234567890\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/profile.createProfile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "profile.createProfile"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"firstName\": \"Jane\",\n      \"lastName\": \"Smith\",\n      \"nationalId\": \"0987654321\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/profile.updateProfile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "profile.updateProfile"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile By User ID (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"userId\": \"user_id_here\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/profile.getProfileByUserId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "profile.getProfileByUserId"]
+            }
+          }
+        },
+        {
+          "name": "Delete Profile (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/profile.deleteProfile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "profile.deleteProfile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Store",
+      "item": [
+        {
+          "name": "Create Store (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"title\": \"My New Store\",\n      \"storeTypeId\": \"store_type_id_here\",\n      \"active\": true\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/store.create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "store.create"]
+            }
+          }
+        },
+        {
+          "name": "Get Store By ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"id\": \"store_id_here\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/store.getById",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "store.getById"]
+            }
+          }
+        },
+        {
+          "name": "List Stores (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"limit\": 10,\n      \"offset\": 0,\n      \"search\": \"\",\n      \"active\": true,\n      \"storeTypeId\": \"\",\n      \"userId\": \"\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/store.list",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "store.list"]
+            }
+          }
+        },
+        {
+          "name": "Update Store (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"id\": \"store_id_here\",\n      \"title\": \"Updated Store Name\",\n      \"storeTypeId\": \"store_type_id_here\",\n      \"active\": true\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/store.update",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "store.update"]
+            }
+          }
+        },
+        {
+          "name": "Delete Store (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"id\": \"store_id_here\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/store.delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "store.delete"]
+            }
+          }
+        },
+        {
+          "name": "Get Store Types (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/store.getStoreTypes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "store.getStoreTypes"]
+            }
+          }
+        },
+        {
+          "name": "Get My Stores (Store Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{storeAdminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/store.getMyStores",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "store.getMyStores"]
+            }
+          }
+        },
+        {
+          "name": "Get My Store By ID (Store Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{storeAdminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"id\": \"store_id_here\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/store.getMyStoreById",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "store.getMyStoreById"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "File",
+      "item": [
+        {
+          "name": "Upload File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {\n      \"name\": \"test.txt\",\n      \"content\": \"SGVsbG8gV29ybGQ=\",\n      \"mimeType\": \"text/plain\",\n      \"published\": false\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/file.upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "file.upload"]
+            }
+          }
+        },
+        {
+          "name": "List Files",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"0\": {\n    \"json\": {}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trpc/file.list",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trpc", "file.list"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

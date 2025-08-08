@@ -1,4 +1,5 @@
-import otpWorker from "./trpc/server/queue/otpWorker";
+import otpWorker from "./queue/QueueWorker/otpWorker";
+import { verifyTransporter } from "./utils/emailSender";
 
 const makeJobWorker = () => {
   if (otpWorker.isPaused()) otpWorker.run();
@@ -6,4 +7,5 @@ const makeJobWorker = () => {
 
 export const register = () => {
   makeJobWorker();
+  verifyTransporter();
 };

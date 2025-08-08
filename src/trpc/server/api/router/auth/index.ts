@@ -1,11 +1,48 @@
-import { createTRPCRouter, publicProcedure } from "@/trpc/server";
-import { signUpSchema } from "./validation";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  privateProcedure,
+  requireRoles,
+} from "@/trpc/server";
+import { loginSchema, signUpSchema, verifyUserSchema } from "./validation";
 import { TRPCError } from "@trpc/server";
-import { getErrorMessage } from "../../../constants/messages";
-import { hash } from "bcrypt";
+import { compare, hash } from "bcrypt";
 import { addMinutesToDate, otpDigit } from "@/trpc/server/helper/otp-generator";
-import { OtpQueue } from "@/trpc/server/queue/otpQueue";
+import { OtpQueue } from "@/queue/otpQueue";
+import { getErrorMessage } from "@/trpc/server/constants/messages";
+import passport from "passport";
+import {
+  Strategy as JwtStrategy,
+  ExtractJwt,
+  StrategyOptions,
+} from "passport-jwt";
+import jwt from "jsonwebtoken";
+import { Role } from "@prisma/client";
 
+// Passport JWT strategy setup
+const opts: StrategyOptions = {
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: process.env.JWT_SECRET as string,
+};
+
+passport.use(
+  new JwtStrategy(opts, async (jwt_payload, done) => {
+    try {
+      // Fetch user from DB
+      const user = await import("@/trpc/server/db").then((m) =>
+        m.prisma.user.findUnique({ where: { id: jwt_payload.userId } })
+      );
+      if (!user || !user.active) {
+        return done(null, false, { message: "User not found or not active" });
+      }
+      return done(null, user);
+    } catch (err) {
+      return done(err, false);
+    }
+  })
+);
+
+// Example usage: allow STORE_ADMIN or ADMIN
 export const authRouter = createTRPCRouter({
   signUp: publicProcedure
     .input(signUpSchema)
@@ -13,7 +50,7 @@ export const authRouter = createTRPCRouter({
       try {
         const { password, username } = input;
 
-        const existUser = db?.user.findFirst({
+        const existUser = await db?.user.findFirst({
           where: { username },
         });
 
@@ -42,7 +79,7 @@ export const authRouter = createTRPCRouter({
         const code = otpDigit();
         const expiresAt = addMinutesToDate(3);
 
-        const otp = await db?.otp.create({
+        await db?.otp.create({
           data: {
             otp: code,
             type: "SIGNUP",
@@ -58,8 +95,96 @@ export const authRouter = createTRPCRouter({
           userId: user.id,
           username,
         });
+
+        return {
+          username: user.username,
+          userId: user.id,
+        };
       } catch (err: unknown) {
-        throw err;
+        console.error(err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: getErrorMessage("authMessage", "signUp", "createUser"),
+        });
       }
+    }),
+  login: publicProcedure.input(loginSchema).mutation(async ({ input, ctx }) => {
+    const { username, password } = input;
+    const { db } = ctx;
+    try {
+      const user = await db?.user.findUnique({
+        where: { username },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: getErrorMessage("authMessage", "signUp", "userNotFound"),
+        });
+      }
+
+      const isValid = await compare(password, user.password);
+      if (!isValid) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: getErrorMessage("authMessage", "signUp", "invalidPassword"),
+        });
+      }
+
+      // Generate JWT token
+      const jwtPayload = {
+        userId: user.id,
+        username: user.username,
+        role: user.role,
+      };
+      const token = jwt.sign(jwtPayload, process.env.JWT_SECRET as string, {
+        expiresIn: "7d",
+      });
+
+      return {
+        token,
+        username: user.username,
+        userId: user.id,
+        role: user.role,
+      };
+    } catch (err: unknown) {
+      console.error(err);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: getErrorMessage("authMessage", "signUp", "loginFailed"),
+      });
+    }
+  }),
+  verifyUser: publicProcedure
+    .input(verifyUserSchema)
+    .mutation(async ({ ctx: { db }, input }) => {
+      const { username, otp } = input;
+      // Find the OTP record
+      const otpRecord = await db?.otp.findFirst({
+        where: {
+          identifier: username,
+          otp,
+          type: "SIGNUP",
+          used: false,
+          expiresAt: { gte: new Date() },
+        },
+      });
+      if (!otpRecord) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Invalid or expired OTP.",
+        });
+      }
+      // Mark OTP as used
+      await db?.otp.update({
+        where: { id: otpRecord.id },
+        data: { used: true },
+      });
+      // Activate the user
+      const user = await db?.user.update({
+        where: { username },
+        data: { active: true },
+      });
+      return { success: true, userId: user?.id };
     }),
 });

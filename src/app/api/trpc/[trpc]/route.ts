@@ -7,18 +7,20 @@ import { appRouter } from "@/trpc/server/api";
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
  * handling a HTTP request (e.g. when you make requests from Client Components).
  */
-const createContext = async (req: NextRequest) => {
+const createContext = async (req: NextRequest, res?: any) => {
   return createTRPCContext({
     headers: req.headers,
+    req,
+    res,
   });
 };
 
-const handler = (req: NextRequest) =>
+const handler = (req: NextRequest, res?: any) =>
   fetchRequestHandler({
     endpoint: "/api/trpc",
     req,
     router: appRouter,
-    createContext: () => createContext(req),
+    createContext: () => createContext(req, res),
     onError:
       process.env.NODE_ENV === "development"
         ? ({ path, error }) => {

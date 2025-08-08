@@ -6,14 +6,15 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { makeQueryClient } from "../client/queryClient";
-import otpWorker from "./queue/otpWorker";
 import { prisma as db } from "./db";
+import { checkUser } from "./midddleware/checkUser";
+import { Role } from "@prisma/client";
 
 // import { db } from "~/server/db";
 // import { getUserAsAdmin } from "../supabase/supabaseClient";
@@ -25,15 +26,19 @@ import { prisma as db } from "./db";
  * @see https://trpc.io/docs/context
  */
 
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts: {
+  headers: Headers;
+  req?: any;
+  res?: any;
+}) => {
   const headers = opts.headers;
-  const authToken = headers.get("authorization");
+  const authToken = headers.get("authorization")?.split(" ")[1];
 
-  //   const { user } = authToken ? await getUserAsAdmin(authToken) : { user: null };
+  const user = authToken ? await checkUser(authToken) : null;
   return {
     ...opts,
     db,
-    // user,
+    user,
   };
 };
 /**
@@ -82,20 +87,28 @@ export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
 const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
-  //   if (!ctx.user) {
-  //     throw new TRPCError({
-  //       code: "UNAUTHORIZED",
-  //     });
-  //   }
+  if (!ctx.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 
   return next({
     ctx: {
-      //   user: ctx.user,
+      user: ctx.user,
     },
   });
 });
 
 export const privateProcedure = t.procedure.use(enforceUserIsAuthed);
+
+// Role-based authorization middleware for tRPC (multiple roles)
+export function requireRoles(roles: Role[]) {
+  return privateProcedure.use(async ({ ctx, next }) => {
+    if (!ctx.user || !roles.includes(ctx.user.role)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Insufficient role" });
+    }
+    return next({ ctx });
+  });
+}
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when

@@ -1,7 +1,7 @@
 import { trpc } from "@/trpc/server/api";
 import Image from "next/image";
 import HomePage from "./_modules/HomePage";
-import { OtpQueue } from "@/trpc/server/queue/otpQueue";
+import { OtpQueue } from "@/queue/otpQueue";
 
 export default async function Home() {
   const q = new OtpQueue();
