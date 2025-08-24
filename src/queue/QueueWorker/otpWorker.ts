@@ -54,9 +54,15 @@ otpWorker.on("failed", (job, err) => {
   console.error(`OTP job ${job?.id} failed:`, err);
 });
 
-process.on("SIGTERM", async () => {
-  otpWorker.close();
-  process.exit(0);
-});
+// Graceful shutdown - only in Node.js runtime
+
+if (process.env.NEXT_RUNTIME === "nodejs") {
+  if (typeof process !== "undefined") {
+    process.on("SIGTERM", async () => {
+      otpWorker.close();
+      process.exit(0);
+    });
+  }
+}
 
 export default otpWorker;

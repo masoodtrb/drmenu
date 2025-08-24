@@ -14,8 +14,8 @@ export const redisConnection = new Redis(redisOptions);
 export const redisSubscriber = new Redis(redisOptions);
 export const redisPublisher = new Redis(redisOptions);
 
-// Graceful shutdown
-if (typeof window === "undefined") {
+// Graceful shutdown - only in Node.js runtime
+if (process.env.NEXT_RUNTIME === "nodejs" && typeof process !== "undefined") {
   process.on("SIGINT", async () => {
     await redisConnection.quit();
     await redisSubscriber.quit();

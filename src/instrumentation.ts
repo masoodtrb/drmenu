@@ -6,6 +6,9 @@ const makeJobWorker = () => {
 };
 
 export const register = () => {
-  makeJobWorker();
-  verifyTransporter();
+  // Only run in Node.js runtime, not Edge Runtime
+  if (typeof process !== "undefined") {
+    makeJobWorker();
+    verifyTransporter();
+  }
 };

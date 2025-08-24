@@ -2,6 +2,8 @@ import { trpc } from "@/trpc/server/api";
 import Image from "next/image";
 import HomePage from "./_modules/HomePage";
 import { OtpQueue } from "@/queue/otpQueue";
+import { ExampleUsage } from "@/components/ui/example-usage";
+import { Button } from "@/components/ui/button";
 
 export default async function Home() {
   const q = new OtpQueue();
@@ -13,6 +15,7 @@ export default async function Home() {
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       {/* <HomePage /> */}
+      <ExampleUsage />
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <Image
           className="dark:invert"
@@ -107,6 +110,8 @@ export default async function Home() {
           />
           Go to nextjs.org →
         </a>
+
+        <Button variant={'secondary'}>Click me</Button>
       </footer>
     </div>
   );
