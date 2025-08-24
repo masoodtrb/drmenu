@@ -37,6 +37,27 @@ export function TRPCProvider(
         httpBatchLink({
           transformer,
           url: getUrl(),
+          headers: () => {
+            if (typeof window === 'undefined') return {};
+
+            // Get current pathname
+            const pathname = window.location.pathname;
+
+            // Determine which token to use based on the route
+            let token = null;
+            if (pathname.startsWith('/admin')) {
+              token = localStorage.getItem('adminToken');
+            } else if (pathname.startsWith('/storeAdmin')) {
+              token = localStorage.getItem('storeToken');
+            } else {
+              // Default token for other routes
+              token = localStorage.getItem('token');
+            }
+
+            return {
+              ...(token && { authorization: `Bearer ${token}` }),
+            };
+          },
         }),
       ],
     })

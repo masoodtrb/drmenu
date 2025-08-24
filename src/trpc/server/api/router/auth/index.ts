@@ -187,4 +187,186 @@ export const authRouter = createTRPCRouter({
       });
       return { success: true, userId: user?.id };
     }),
+
+  // Admin-specific login for super admins only
+  adminLogin: publicProcedure
+    .input(loginSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { username, password } = input;
+      const { db } = ctx;
+
+      try {
+        const user = await db?.user.findUnique({
+          where: { username },
+          include: {
+            Profile: true,
+          },
+        });
+
+        if (!user) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Invalid credentials. Access denied.",
+          });
+        }
+
+        // Check if user is active
+        if (!user.active) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Account is not active. Please contact support.",
+          });
+        }
+
+        // Verify password
+        const isValid = await compare(password, user.password);
+        if (!isValid) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Invalid credentials. Access denied.",
+          });
+        }
+
+        // Check if user has ADMIN role
+        if (user.role !== "ADMIN") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Access denied. Super admin privileges required.",
+          });
+        }
+
+        // Generate JWT token with admin privileges
+        const jwtPayload = {
+          userId: user.id,
+          username: user.username,
+          role: user.role,
+        };
+        const token = jwt.sign(jwtPayload, process.env.JWT_SECRET as string, {
+          expiresIn: "24h", // Shorter expiration for admin tokens
+        });
+
+        return {
+          token,
+          username: user.username,
+          userId: user.id,
+          role: user.role,
+          profile: user.Profile,
+        };
+      } catch (err: unknown) {
+        console.error("Admin login error:", err);
+        if (err instanceof TRPCError) {
+          throw err;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Login failed. Please try again.",
+        });
+      }
+    }),
+
+  // Validate admin token and get current user info
+  validateAdminToken: privateProcedure.query(async ({ ctx }) => {
+    const { user, db } = ctx;
+
+    try {
+      // Check if user exists and is active
+      const currentUser = await db?.user.findUnique({
+        where: { id: user.id },
+        include: {
+          Profile: true,
+        },
+      });
+
+      if (!currentUser) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User not found.",
+        });
+      }
+
+      if (!currentUser.active) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Account is not active.",
+        });
+      }
+
+      // Check if user has ADMIN role
+      if (currentUser.role !== "ADMIN") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Access denied. Super admin privileges required.",
+        });
+      }
+
+      return {
+        username: currentUser.username,
+        userId: currentUser.id,
+        role: currentUser.role,
+        profile: currentUser.Profile,
+      };
+    } catch (err: unknown) {
+      console.error("Admin token validation error:", err);
+      if (err instanceof TRPCError) {
+        throw err;
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Token validation failed.",
+      });
+    }
+  }),
+
+  // Validate store admin token and get current user info
+  validateStoreAdminToken: privateProcedure.query(async ({ ctx }) => {
+    const { user, db } = ctx;
+
+    try {
+      // Check if user exists and is active
+      const currentUser = await db?.user.findUnique({
+        where: { id: user.id },
+        include: {
+          Profile: true,
+        },
+      });
+
+      if (!currentUser) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User not found.",
+        });
+      }
+
+      if (!currentUser.active) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Account is not active.",
+        });
+      }
+
+      // Check if user has STORE_ADMIN role
+      if (currentUser.role !== "STORE_ADMIN") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Access denied. Store admin privileges required.",
+        });
+      }
+
+      return {
+        username: currentUser.username,
+        userId: currentUser.id,
+        role: currentUser.role,
+        profile: currentUser.Profile,
+      };
+    } catch (err: unknown) {
+      console.error("Store admin token validation error:", err);
+      if (err instanceof TRPCError) {
+        throw err;
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Token validation failed.",
+      });
+    }
+  }),
 });
