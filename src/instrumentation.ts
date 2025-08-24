@@ -1,5 +1,5 @@
 import otpWorker from "./queue/QueueWorker/otpWorker";
-import { verifyTransporter } from "./utils/emailSender";
+import { verifyTransporter } from "./lib/util/emailSender";
 
 const makeJobWorker = () => {
   if (otpWorker.isPaused()) otpWorker.run();

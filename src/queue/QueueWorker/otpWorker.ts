@@ -1,8 +1,8 @@
 import { Worker } from "bullmq";
 import { redisConnection } from "@/database/redis";
 import { OtpJobData } from "../otpQueue";
-import { isEmail, isMobile } from "@/utils/commonValidations";
-import { sendEmail } from "@/utils/emailSender";
+import { isEmail, isMobile } from "@/lib/util/commonValidations";
+import { sendEmail } from "@/lib/util/emailSender";
 import UserVerifyIdentityEmail from "@/template/email/userVerification";
 import { render } from "@react-email/components";
 

@@ -1,8 +1,6 @@
 import { RouterInputs } from "@/trpc/shared";
-import { getServerQueryClient } from "@/utils/getQueryClient";
+import { getServerQueryClient } from "@/lib/util/getQueryClient";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { TanStackReactQueryDevtools } from "./devtools";
 
 
 type AccessPaths<T> = {
