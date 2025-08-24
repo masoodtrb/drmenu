@@ -9,6 +9,7 @@ import { makeQueryClient } from "./queryClient";
 import { AppRouter } from "@/trpc/server/api";
 import { getUrl, transformer } from "../shared";
 import { TanStackReactQueryDevtools } from "@/components/TanStackReactQueryDevtools";
+import { useUserStore } from "@/lib/store/userStore";
 
 export const trpc = createTRPCReact<AppRouter>();
 let clientQueryClientSingleton: QueryClient;
@@ -43,16 +44,17 @@ export function TRPCProvider(
             // Get current pathname
             const pathname = window.location.pathname;
 
-            // Determine which token to use based on the route
-            let token = null;
-            if (pathname.startsWith('/admin')) {
-              token = localStorage.getItem('adminToken');
-            } else if (pathname.startsWith('/storeAdmin')) {
-              token = localStorage.getItem('storeToken');
-            } else {
-              // Default token for other routes
-              token = localStorage.getItem('token');
+            // Get token from Zustand store based on route
+            const { getCurrentUser, _hasHydrated } = useUserStore.getState();
+
+            // Wait for store to be rehydrated
+            if (!_hasHydrated) {
+              return {};
             }
+
+            const { token } = getCurrentUser();
+
+            console.log("token", token);
 
             return {
               ...(token && { authorization: `Bearer ${token}` }),

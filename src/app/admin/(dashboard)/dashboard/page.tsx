@@ -1,50 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, Users, Store, Settings, LogOut, Menu } from 'lucide-react';
-import { trpc } from '@/trpc/client';
-
-interface AdminUser {
-    id: string;
-    username: string;
-    role: string;
-    profile?: any;
-}
+import { useUserStore } from '@/lib/store/userStore';
 
 export default function AdminDashboardPage() {
-    const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
     const router = useRouter();
 
-    // Get validated user data from server
-    const { data: userData, error } = trpc.auth.validateAdminToken.useQuery(undefined, {
-        retry: false,
-        refetchOnWindowFocus: false,
-    });
-
-    useEffect(() => {
-        if (userData) {
-            setAdminUser({
-                id: userData.userId,
-                username: userData.username,
-                role: userData.role,
-                profile: userData.profile
-            });
-        }
-    }, [userData]);
+    // Zustand store - only need user data and logout function
+    const { logoutAdmin, getUserFullName } = useUserStore();
 
     const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUser');
+        logoutAdmin();
         router.push('/admin/login');
     };
 
-    // If there's an error, the AdminProtected component will handle the redirect
-    if (error) {
-        return null;
-    }
 
     return (
         <>
@@ -63,7 +35,7 @@ export default function AdminDashboardPage() {
 
                         <div className="flex items-center space-x-4">
                             <span className="text-sm text-slate-600 dark:text-slate-400">
-                                خوش آمدید، {adminUser?.username}
+                                خوش آمدید، {getUserFullName()}
                             </span>
                             <Button
                                 variant="outline"

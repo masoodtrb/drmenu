@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/trpc/client';
+import { useUserStore } from '@/lib/store/userStore';
 
 interface StoreAdminProtectedProps {
     children: React.ReactNode;
@@ -14,41 +15,41 @@ export default function StoreAdminProtected({ children, fallback }: StoreAdminPr
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
+    // Zustand store
+    const { storeUser, storeToken, setStoreUser, logoutStore, _hasHydrated } = useUserStore();
+
     // Validate token with server
     const { data: userData, error, isLoading: isValidating } = trpc.auth.validateStoreAdminToken.useQuery(undefined, {
         retry: false,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
+        enabled: _hasHydrated && !!storeToken, // Only run query if store is hydrated and token exists
     });
 
     useEffect(() => {
-        const checkAuth = () => {
-            const token = localStorage.getItem('storeToken');
-            const localUserData = localStorage.getItem('storeUser');
+        // Wait for store to be rehydrated
+        if (!_hasHydrated) {
+            return;
+        }
 
-            if (!token || !localUserData) {
+        const checkAuth = () => {
+            if (!storeToken || !storeUser) {
                 handleLogout();
                 return;
             }
 
-            try {
-                const user = JSON.parse(localUserData);
-                if (user.role !== 'STORE_ADMIN') {
-                    handleLogout();
-                    return;
-                }
-            } catch (error) {
-                console.error('Error parsing store admin user data:', error);
+            // Check if user has STORE_ADMIN role
+            if (storeUser.role !== 'STORE_ADMIN') {
                 handleLogout();
                 return;
             }
         };
 
         checkAuth();
-    }, []);
+    }, [storeToken, storeUser, _hasHydrated]);
 
     useEffect(() => {
-        if (!isValidating) {
+        if (!isValidating && _hasHydrated) {
             if (error) {
                 // Handle authentication errors
                 console.error('Store admin authentication error:', error);
@@ -63,29 +64,29 @@ export default function StoreAdminProtected({ children, fallback }: StoreAdminPr
                     return;
                 }
 
-                // Token is valid, update localStorage with fresh data
-                localStorage.setItem('storeUser', JSON.stringify({
+                // Token is valid, update Zustand store with fresh data
+                setStoreUser({
                     id: userData.userId,
                     username: userData.username,
                     role: userData.role,
                     profile: userData.profile
-                }));
+                }, storeToken);
                 setIsAuthorized(true);
             }
 
             setIsLoading(false);
         }
-    }, [userData, error, isValidating]);
+    }, [userData, error, isValidating, setStoreUser, storeToken, _hasHydrated]);
 
     const handleLogout = () => {
-        localStorage.removeItem('storeToken');
-        localStorage.removeItem('storeUser');
+        logoutStore();
         setIsAuthorized(false);
         setIsLoading(false);
         router.push('/storeAdmin/login');
     };
 
-    if (isLoading || isValidating) {
+    // Show loading while store is being rehydrated or validating
+    if (!_hasHydrated || isLoading || isValidating) {
         return (
             fallback || (
                 <div className="min-h-screen flex items-center justify-center">

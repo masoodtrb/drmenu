@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { trpc } from '@/trpc/client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Shield, Lock } from 'lucide-react';
+import { Shield, Eye, EyeOff, Lock } from 'lucide-react';
+import { trpc } from '@/trpc/client';
+import { useUserStore } from '@/lib/store/userStore';
 
 export default function AdminLoginPage() {
     const [username, setUsername] = useState('');
@@ -18,69 +19,57 @@ export default function AdminLoginPage() {
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const router = useRouter();
 
-    // Check if user is already logged in
-    useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        const userData = localStorage.getItem('adminUser');
+    // Zustand store
+    const { adminUser, adminToken, setAdminUser, _hasHydrated } = useUserStore();
 
-        if (token && userData) {
-            try {
-                const user = JSON.parse(userData);
-                if (user.role === 'ADMIN') {
-                    router.push('/admin/dashboard');
-                    return;
-                }
-            } catch (error) {
-                console.error('Error parsing admin user data:', error);
-                localStorage.removeItem('adminToken');
-                localStorage.removeItem('adminUser');
-            }
-        }
-        setIsCheckingAuth(false);
-    }, [router]);
-
-    const loginMutation = trpc.auth.adminLogin.useMutation({
+    // Admin login mutation
+    const adminLoginMutation = trpc.auth.adminLogin.useMutation({
         onSuccess: (data) => {
-            // Store the token in localStorage or secure storage
-            localStorage.setItem('adminToken', data.token);
-            localStorage.setItem('adminUser', JSON.stringify({
+            // Store user data in Zustand
+            setAdminUser({
                 id: data.userId,
                 username: data.username,
-                role: data.role
-            }));
+                role: data.role,
+                profile: data.profile
+            }, data.token);
 
-            // Redirect to admin dashboard
             router.push('/admin/dashboard');
         },
         onError: (error) => {
-            setError(error.message || 'ورود ناموفق بود. لطفاً دوباره تلاش کنید.');
+            setError(error.message);
             setIsLoading(false);
-        }
+        },
     });
+
+    // Check if user is already logged in
+    useEffect(() => {
+        // Wait for store to be rehydrated
+        if (!_hasHydrated) {
+            return;
+        }
+
+        if (adminToken && adminUser) {
+            if (adminUser.role === 'ADMIN') {
+                router.push('/admin/dashboard');
+                return;
+            }
+        }
+        setIsCheckingAuth(false);
+    }, [adminToken, adminUser, router, _hasHydrated]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
 
-        if (!username.trim() || !password.trim()) {
-            setError('لطفاً تمام فیلدها را پر کنید');
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            await loginMutation.mutateAsync({
-                username: username.trim(),
-                password: password.trim()
-            });
-        } catch (err) {
-            // Error is handled in onError callback
-        }
+        adminLoginMutation.mutate({
+            username,
+            password,
+        });
     };
 
     // Show loading while checking authentication
-    if (isCheckingAuth) {
+    if (isCheckingAuth || !_hasHydrated) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
                 <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
