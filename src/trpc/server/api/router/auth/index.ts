@@ -4,10 +4,17 @@ import {
   privateProcedure,
   requireRoles,
 } from "@/trpc/server";
-import { loginSchema, signUpSchema, verifyUserSchema } from "./validation";
+import {
+  loginSchema,
+  signUpSchema,
+  verifyUserSchema,
+  loginWithOTPSchema,
+} from "./validation";
+import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { compare, hash } from "bcrypt";
 import { addMinutesToDate, otpDigit } from "@/trpc/server/helper/otp-generator";
+import { generateSecureToken } from "@/trpc/server/helper/token-generator";
 import { OtpQueue } from "@/queue/otpQueue";
 import { getErrorMessage } from "@/trpc/server/constants/messages";
 import passport from "passport";
@@ -77,11 +84,13 @@ export const authRouter = createTRPCRouter({
           });
 
         const code = otpDigit();
+        const token = generateSecureToken();
         const expiresAt = addMinutesToDate(3);
 
         await db?.otp.create({
           data: {
             otp: code,
+            token,
             type: "SIGNUP",
             identifier: username,
             expiresAt,
@@ -99,6 +108,7 @@ export const authRouter = createTRPCRouter({
         return {
           username: user.username,
           userId: user.id,
+          token,
         };
       } catch (err: unknown) {
         console.error(err);
@@ -158,12 +168,13 @@ export const authRouter = createTRPCRouter({
   verifyUser: publicProcedure
     .input(verifyUserSchema)
     .mutation(async ({ ctx: { db }, input }) => {
-      const { username, otp } = input;
+      const { username, otp, token } = input;
       // Find the OTP record
       const otpRecord = await db?.otp.findFirst({
         where: {
           identifier: username,
           otp,
+          token,
           type: "SIGNUP",
           used: false,
           expiresAt: { gte: new Date() },
@@ -369,4 +380,170 @@ export const authRouter = createTRPCRouter({
       });
     }
   }),
+
+  // Send OTP for login or signup
+  sendOTP: publicProcedure
+    .input(
+      z.object({
+        username: z.string(),
+        type: z.enum(["LOGIN", "SIGNUP", "PASSWORD_RESET"]),
+      })
+    )
+    .mutation(async ({ ctx: { db }, input }) => {
+      try {
+        const { username, type } = input;
+
+        // Check if user exists for LOGIN and PASSWORD_RESET
+        if (type !== "SIGNUP") {
+          const user = await db?.user.findFirst({
+            where: { username },
+          });
+
+          if (!user) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "User not found.",
+            });
+          }
+
+          if (!user.active && type === "LOGIN") {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message:
+                "Account is not active. Please verify your account first.",
+            });
+          }
+        }
+
+        const code = otpDigit();
+        const token = generateSecureToken();
+        const expiresAt = addMinutesToDate(3);
+
+        // Find user for non-signup OTPs
+        let userId: string | null = null;
+        if (type !== "SIGNUP") {
+          const existingUser = await db?.user.findFirst({
+            where: { username },
+          });
+          userId = existingUser?.id ?? null;
+        }
+
+        await db?.otp.create({
+          data: {
+            otp: code,
+            token,
+            type,
+            identifier: username,
+            expiresAt,
+            userId,
+          },
+        });
+
+        const queue = new OtpQueue();
+        queue.addJob({
+          otp: code,
+          userId: userId || undefined,
+          username,
+        });
+
+        return {
+          success: true,
+          message: "OTP sent successfully",
+          token,
+        };
+      } catch (err: unknown) {
+        console.error(err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to send OTP. Please try again.",
+        });
+      }
+    }),
+
+  // Login with OTP
+  loginWithOTP: publicProcedure
+    .input(loginWithOTPSchema)
+    .mutation(async ({ ctx: { db }, input }) => {
+      try {
+        const { username, otp, token } = input;
+
+        // Find the OTP record
+        const otpRecord = await db?.otp.findFirst({
+          where: {
+            identifier: username,
+            otp,
+            token,
+            type: "LOGIN",
+            used: false,
+            expiresAt: { gte: new Date() },
+          },
+        });
+
+        if (!otpRecord) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Invalid or expired OTP.",
+          });
+        }
+
+        // Find the user
+        const user = await db?.user.findUnique({
+          where: { username },
+          include: {
+            Profile: true,
+          },
+        });
+
+        if (!user) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "User not found.",
+          });
+        }
+
+        if (!user.active) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Account is not active. Please verify your account first.",
+          });
+        }
+
+        // Mark OTP as used
+        await db?.otp.update({
+          where: { id: otpRecord.id },
+          data: { used: true },
+        });
+
+        // Generate JWT token
+        const jwtPayload = {
+          userId: user.id,
+          username: user.username,
+          role: user.role,
+        };
+        const jwtToken = jwt.sign(
+          jwtPayload,
+          process.env.JWT_SECRET as string,
+          {
+            expiresIn: "7d",
+          }
+        );
+
+        return {
+          token: jwtToken,
+          username: user.username,
+          userId: user.id,
+          role: user.role,
+          profile: user.Profile,
+        };
+      } catch (err: unknown) {
+        console.error(err);
+        if (err instanceof TRPCError) {
+          throw err;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Login failed. Please try again.",
+        });
+      }
+    }),
 });

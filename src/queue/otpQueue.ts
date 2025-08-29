@@ -1,7 +1,7 @@
 import { GlobalQueue } from ".";
 
 export interface OtpJobData {
-  userId: string;
+  userId?: string;
   username: string;
   otp: string;
 }

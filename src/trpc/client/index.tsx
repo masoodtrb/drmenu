@@ -54,8 +54,6 @@ export function TRPCProvider(
 
             const { token } = getCurrentUser();
 
-            console.log("token", token);
-
             return {
               ...(token && { authorization: `Bearer ${token}` }),
             };

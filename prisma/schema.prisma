@@ -31,19 +31,20 @@ enum Role {
 }
 
 model User {
-  id          String        @id @default(cuid())
-  username    String        @unique
-  password    String
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  deletedAt   DateTime?     @map("deleted_at")
-  Profile     Profile?
-  role        Role          @default(STORE_ADMIN)
-  Store       Store[]
-  StoreBranch StoreBranch[]
-  Otp         Otp[]
-  active      Boolean       @default(false)
-  Files       File[]
+  id            String         @id @default(cuid())
+  username      String         @unique
+  password      String
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  deletedAt     DateTime?      @map("deleted_at")
+  Profile       Profile?
+  role          Role           @default(STORE_ADMIN)
+  Store         Store[]
+  StoreBranch   StoreBranch[]
+  Otp           Otp[]
+  active        Boolean        @default(false)
+  Files         File[]
+  subscriptions Subscription[]
 
   @@map("user")
 }
@@ -68,6 +69,7 @@ model Otp {
   user       User?    @relation(fields: [userId], references: [id])
   identifier String // Email or phone
   otp        String
+  token      String   @unique // Secure verification token
   type       OtpType
   expiresAt  DateTime
   used       Boolean  @default(false)
@@ -75,6 +77,7 @@ model Otp {
   createdAt  DateTime @default(now())
 
   @@index([identifier, type])
+  @@index([token])
   @@map("otp")
 }
 
@@ -112,18 +115,21 @@ model Store {
 }
 
 model StoreBranch {
-  id          String     @id @default(cuid())
-  title       String
-  description String     @db.Text
-  active      Boolean?   @default(false)
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-  deletedAt   DateTime?  @map("deleted_at")
-  store       Store      @relation(fields: [storeId], references: [id])
-  storeId     String
-  owner       User       @relation(fields: [userId], references: [id])
-  Category    Category[]
-  userId      String
+  id                      String                   @id @default(cuid())
+  title                   String
+  description             String                   @db.Text
+  active                  Boolean?                 @default(false)
+  menuPublished           Boolean                  @default(false) @map("menu_published")
+  menuPublishedAt         DateTime?                @map("menu_published_at")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  deletedAt               DateTime?                @map("deleted_at")
+  store                   Store                    @relation(fields: [storeId], references: [id])
+  storeId                 String
+  owner                   User                     @relation(fields: [userId], references: [id])
+  Category                Category[]
+  userId                  String
+  branchMenuSubscriptions BranchMenuSubscription[]
 
   @@map("store_branch")
 }
@@ -200,4 +206,110 @@ model File {
   itemImages ItemImage[]
 
   @@map("file")
+}
+
+// Subscription System Models
+
+enum SubscriptionInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+  TRIAL
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+model SubscriptionPlan {
+  id                String               @id @default(cuid())
+  name              String
+  nameFa            String?              @map("name_fa")
+  description       String               @db.Text
+  descriptionFa     String?              @map("description_fa") @db.Text
+  price             Decimal              @db.Decimal(10, 2)
+  currency          String               @default("IRR")
+  interval          SubscriptionInterval
+  features          Json
+  active            Boolean              @default(true)
+  isDefault         Boolean              @default(false) @map("is_default")
+  maxStores         Int                  @default(1) @map("max_stores")
+  maxBranches       Int                  @default(1) @map("max_branches")
+  maxPublishedMenus Int                  @default(1) @map("max_published_menus")
+  maxItems          Int                  @default(50) @map("max_items")
+  maxImages         Int                  @default(100) @map("max_images")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  deletedAt         DateTime?            @map("deleted_at")
+
+  subscriptions Subscription[]
+
+  @@map("subscription_plan")
+}
+
+model Subscription {
+  id                String             @id @default(cuid())
+  userId            String
+  planId            String
+  status            SubscriptionStatus
+  startDate         DateTime           @map("start_date")
+  endDate           DateTime           @map("end_date")
+  trialEndDate      DateTime?          @map("trial_end_date")
+  cancelAtPeriodEnd Boolean            @default(false) @map("cancel_at_period_end")
+  paymentProvider   String             @map("payment_provider")
+  paymentProviderId String?            @map("payment_provider_id")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  cancelledAt       DateTime?          @map("cancelled_at")
+
+  user                    User                     @relation(fields: [userId], references: [id])
+  plan                    SubscriptionPlan         @relation(fields: [planId], references: [id])
+  payments                Payment[]
+  branchMenuSubscriptions BranchMenuSubscription[]
+
+  @@map("subscription")
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  subscriptionId    String
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("IRR")
+  status            PaymentStatus
+  paymentProvider   String        @map("payment_provider")
+  paymentProviderId String?       @map("payment_provider_id")
+  paymentMethod     String?       @map("payment_method")
+  description       String?
+  metadata          Json?
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@map("payment")
+}
+
+model BranchMenuSubscription {
+  id             String   @id @default(cuid())
+  storeBranchId  String   @map("store_branch_id")
+  subscriptionId String
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  storeBranch  StoreBranch  @relation(fields: [storeBranchId], references: [id])
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@unique([storeBranchId, subscriptionId])
+  @@map("branch_menu_subscription")
 }

@@ -11,6 +11,7 @@ import { profileRouter } from "./router/profile";
 import { fileRouter } from "./router/file";
 import { storeRouter } from "./router/store";
 import { menuRouter } from "./router/menu";
+import { subscriptionRouter } from "./router/subscription";
 
 console.log("running");
 
@@ -21,6 +22,7 @@ export const appRouter = createTRPCRouter({
   file: fileRouter,
   store: storeRouter,
   menu: menuRouter,
+  subscription: subscriptionRouter,
 });
 
 export type AppRouter = typeof appRouter;

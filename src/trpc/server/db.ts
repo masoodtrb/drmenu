@@ -14,24 +14,43 @@ export const prisma =
         : ["error"],
   });
 
-prisma.$use(async (params, next) => {
-  if (params.model) {
+// Soft delete middleware
+(prisma as any).$use(async (params: any, next: any) => {
+  // Check if the model has a deletedAt field (soft delete enabled)
+  if (
+    params.model /*  &&
+    [
+      "User",
+      "Profile",
+      "Store",
+      "StoreBranch",
+      "StoreType",
+      "Category",
+      "Item",
+      "ItemImage",
+      "File",
+      "SubscriptionPlan",
+      "Subscription",
+    ].includes(params.model) */
+  ) {
     if (params.action === "delete") {
+      // Change delete to update with deletedAt timestamp
       params.action = "update";
-      params.args["data"] = { deleted_at: new Date().toUTCString() };
+      params.args["data"] = { deletedAt: new Date() };
     }
     if (params.action === "deleteMany") {
+      // Change deleteMany to updateMany with deletedAt timestamp
       params.action = "updateMany";
       if (params.args.data != undefined) {
-        params.args.data["deleted_at"] = new Date().toUTCString();
+        params.args.data["deletedAt"] = new Date();
       } else {
-        params.args["data"] = { deleted_at: new Date().toUTCString() };
+        params.args["data"] = { deletedAt: new Date() };
       }
     }
   }
-
   return next(params);
 });
+
 // In development, ensure the PrismaClient instance is not recreated on hot reloads.
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
