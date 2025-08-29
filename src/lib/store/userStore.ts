@@ -132,7 +132,7 @@ export const useUserStore = create<UserState>()(
 
         if (pathname.startsWith("/admin")) {
           return { user: get().adminUser, token: get().adminToken };
-        } else if (pathname.startsWith("/storeAdmin")) {
+        } else if (pathname.startsWith("/store")) {
           return { user: get().storeUser, token: get().storeToken };
         } else {
           return { user: get().user, token: get().token };
