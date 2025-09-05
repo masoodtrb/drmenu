@@ -18,14 +18,14 @@ The Query Builder system provides a flexible, reusable way to handle list endpoi
 ### Basic Usage
 
 ```typescript
-import { QueryBuilder } from "@/trpc/server/helper/queryBuilder";
+import { QueryBuilder } from '@/trpc/server/helper/queryBuilder';
 
 // Create a query builder with legacy string search
 const queryBuilder = new QueryBuilder(db.store, {
   limit: 20,
   offset: 0,
-  search: "restaurant",
-  searchFields: ["title"],
+  search: 'restaurant',
+  searchFields: ['title'],
   filters: { active: true },
   include: {
     storeType: true,
@@ -40,18 +40,18 @@ const result = await queryBuilder.execute();
 ### Advanced Search Usage
 
 ```typescript
-import { QueryBuilder, SearchFilter } from "@/trpc/server/helper/queryBuilder";
+import { QueryBuilder, SearchFilter } from '@/trpc/server/helper/queryBuilder';
 
 // Create advanced search filters
 const advancedFilters: SearchFilter[] = [
-  { field: "title", value: "restaurant", operation: "contains" },
-  { field: "active", value: true, operation: "eq" },
+  { field: 'title', value: 'restaurant', operation: 'contains' },
+  { field: 'active', value: true, operation: 'eq' },
   {
-    field: "createdAt",
-    value: [new Date("2024-01-01"), new Date("2024-12-31")],
-    operation: "between",
+    field: 'createdAt',
+    value: [new Date('2024-01-01'), new Date('2024-12-31')],
+    operation: 'between',
   },
-  { field: "role", value: "ADMIN", operation: "eq", relation: "user" },
+  { field: 'role', value: 'ADMIN', operation: 'eq', relation: 'user' },
 ];
 
 // Create a query builder with advanced search
@@ -77,9 +77,9 @@ Adds advanced search functionality with array of filter objects.
 
 ```typescript
 const filters: SearchFilter[] = [
-  { field: "title", value: "restaurant", operation: "contains" },
-  { field: "active", value: true, operation: "eq" },
-  { field: "createdAt", value: [startDate, endDate], operation: "between" },
+  { field: 'title', value: 'restaurant', operation: 'contains' },
+  { field: 'active', value: true, operation: 'eq' },
+  { field: 'createdAt', value: [startDate, endDate], operation: 'between' },
 ];
 queryBuilder.search(filters);
 ```
@@ -89,7 +89,7 @@ queryBuilder.search(filters);
 Adds legacy string search functionality across specified fields.
 
 ```typescript
-queryBuilder.searchText("restaurant", ["title", "description"]);
+queryBuilder.searchText('restaurant', ['title', 'description']);
 ```
 
 #### `paginate(limit?: number, offset?: number)`
@@ -105,7 +105,7 @@ queryBuilder.paginate(20, 40); // 20 items, skip first 40
 Adds custom filters to the query.
 
 ```typescript
-queryBuilder.filter({ active: true, storeTypeId: "restaurant-type" });
+queryBuilder.filter({ active: true, storeTypeId: 'restaurant-type' });
 ```
 
 #### `orderBy(orderBy: Record<string, "asc" | "desc">)`
@@ -113,7 +113,7 @@ queryBuilder.filter({ active: true, storeTypeId: "restaurant-type" });
 Sets the ordering of results.
 
 ```typescript
-queryBuilder.orderBy({ title: "asc", createdAt: "desc" });
+queryBuilder.orderBy({ title: 'asc', createdAt: 'desc' });
 ```
 
 #### `include(include: Record<string, any>)`
@@ -156,24 +156,24 @@ interface QueryBuilderResult<T> {
 ### StoreQueryBuilder
 
 ```typescript
-import { StoreQueryBuilder } from "@/trpc/server/helper/queryBuilder";
+import { StoreQueryBuilder } from '@/trpc/server/helper/queryBuilder';
 
 // Legacy string search
 const queryBuilder = new StoreQueryBuilder()
   .paginate(10, 0)
-  .searchStores("restaurant")
+  .searchStores('restaurant')
   .byActiveStatus(true)
-  .byStoreType("restaurant-type-id")
-  .byUser("user-id")
+  .byStoreType('restaurant-type-id')
+  .byUser('user-id')
   .withRelations();
 
 const result = await queryBuilder.execute();
 
 // Advanced search with filters
 const advancedFilters: SearchFilter[] = [
-  { field: "title", value: "restaurant", operation: "contains" },
-  { field: "active", value: true, operation: "eq" },
-  { field: "createdAt", value: [startDate, endDate], operation: "between" },
+  { field: 'title', value: 'restaurant', operation: 'contains' },
+  { field: 'active', value: true, operation: 'eq' },
+  { field: 'createdAt', value: [startDate, endDate], operation: 'between' },
 ];
 
 const advancedQueryBuilder = new StoreQueryBuilder()
@@ -187,12 +187,12 @@ const advancedResult = await advancedQueryBuilder.execute();
 ### UserQueryBuilder
 
 ```typescript
-import { UserQueryBuilder } from "@/trpc/server/helper/queryBuilder";
+import { UserQueryBuilder } from '@/trpc/server/helper/queryBuilder';
 
 const queryBuilder = new UserQueryBuilder()
   .paginate(15, 0)
-  .searchUsers("admin")
-  .byRole("ADMIN")
+  .searchUsers('admin')
+  .byRole('ADMIN')
   .byActiveStatus(true)
   .withProfile();
 
@@ -202,14 +202,14 @@ const result = await queryBuilder.execute();
 ### FileQueryBuilder
 
 ```typescript
-import { FileQueryBuilder } from "@/trpc/server/helper/queryBuilder";
+import { FileQueryBuilder } from '@/trpc/server/helper/queryBuilder';
 
 const queryBuilder = new FileQueryBuilder()
   .paginate(20, 0)
-  .searchFiles("document")
+  .searchFiles('document')
   .byPublishedStatus(true)
-  .byStorageType("local")
-  .byOwner("user-id")
+  .byStorageType('local')
+  .byOwner('user-id')
   .withOwner();
 
 const result = await queryBuilder.execute();
@@ -223,17 +223,17 @@ const result = await queryBuilder.execute();
 import {
   createListEndpoint,
   ListEndpointConfig,
-} from "@/trpc/server/helper/listEndpointBuilder";
+} from '@/trpc/server/helper/listEndpointBuilder';
 
 const config: ListEndpointConfig<Store> = {
   model: db.store,
-  searchFields: ["title"],
+  searchFields: ['title'],
   defaultFilters: { deletedAt: null },
   defaultIncludes: {
     storeType: true,
     user: { select: { id: true, username: true } },
   },
-  defaultOrderBy: { createdAt: "desc" as const },
+  defaultOrderBy: { createdAt: 'desc' as const },
   customFilters: (input: any) => {
     const filters: Record<string, any> = {};
     if (input.active !== undefined) filters.active = input.active;
@@ -241,10 +241,10 @@ const config: ListEndpointConfig<Store> = {
     return filters;
   },
   validateAccess: async (ctx: any) => {
-    return ctx.user?.role === "ADMIN";
+    return ctx.user?.role === 'ADMIN';
   },
   transformData: (data: Store[]) => {
-    return data.map((store) => ({
+    return data.map(store => ({
       ...store,
       displayName: `${store.title} (${store.storeType?.title})`,
     }));
@@ -257,7 +257,7 @@ const listEndpoint = createListEndpoint(config);
 ### Predefined Configurations
 
 ```typescript
-import { ListEndpointConfigs } from "@/trpc/server/helper/listEndpointBuilder";
+import { ListEndpointConfigs } from '@/trpc/server/helper/listEndpointBuilder';
 
 // Store configuration
 const storeConfig = {
@@ -283,7 +283,7 @@ const fileConfig = {
 ### Quick Query Functions
 
 ```typescript
-import { QueryUtils } from "@/trpc/server/helper/queryBuilder";
+import { QueryUtils } from '@/trpc/server/helper/queryBuilder';
 
 // Basic list query
 const basicResult = await QueryUtils.createListQuery(db.store, {
@@ -294,15 +294,15 @@ const basicResult = await QueryUtils.createListQuery(db.store, {
 // Search query
 const searchResult = await QueryUtils.createSearchQuery(
   db.store,
-  "restaurant",
-  ["title"],
+  'restaurant',
+  ['title'],
   { limit: 20 }
 );
 
 // Filtered query
 const filteredResult = await QueryUtils.createFilteredQuery(
   db.store,
-  { active: true, storeTypeId: "restaurant-type" },
+  { active: true, storeTypeId: 'restaurant-type' },
   { limit: 15 }
 );
 ```
@@ -312,7 +312,7 @@ const filteredResult = await QueryUtils.createFilteredQuery(
 ### Example: Store Router
 
 ```typescript
-import { StoreQueryBuilder } from "@/trpc/server/helper/queryBuilder";
+import { StoreQueryBuilder } from '@/trpc/server/helper/queryBuilder';
 
 export const storeRouter = createTRPCRouter({
   list: requireRoles([Role.ADMIN])
@@ -349,8 +349,8 @@ export const storeRouter = createTRPCRouter({
       } catch (err: unknown) {
         console.error(err);
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch stores",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch stores',
         });
       }
     }),
@@ -360,7 +360,7 @@ export const storeRouter = createTRPCRouter({
 ### Example: Generic List Endpoint
 
 ```typescript
-import { createListEndpoint } from "@/trpc/server/helper/listEndpointBuilder";
+import { createListEndpoint } from '@/trpc/server/helper/listEndpointBuilder';
 
 function createGenericListEndpoint<T>(
   db: any,
@@ -373,14 +373,14 @@ function createGenericListEndpoint<T>(
     searchFields,
     defaultFilters: { deletedAt: null },
     defaultIncludes,
-    defaultOrderBy: { createdAt: "desc" as const },
+    defaultOrderBy: { createdAt: 'desc' as const },
   };
 
   return createListEndpoint(config);
 }
 
 // Usage
-const storeListEndpoint = createGenericListEndpoint(db, "store", ["title"], {
+const storeListEndpoint = createGenericListEndpoint(db, 'store', ['title'], {
   storeType: true,
   user: { select: { id: true, username: true } },
 });
@@ -481,19 +481,19 @@ The advanced search system supports the following operations:
 ```typescript
 const filters: SearchFilter[] = [
   // Simple equality
-  { field: "title", value: "restaurant", operation: "eq" },
+  { field: 'title', value: 'restaurant', operation: 'eq' },
 
   // Contains search
-  { field: "title", value: "restaurant", operation: "contains" },
+  { field: 'title', value: 'restaurant', operation: 'contains' },
 
   // Date range
-  { field: "createdAt", value: [startDate, endDate], operation: "between" },
+  { field: 'createdAt', value: [startDate, endDate], operation: 'between' },
 
   // Multiple values
-  { field: "storeTypeId", value: ["type1", "type2"], operation: "in" },
+  { field: 'storeTypeId', value: ['type1', 'type2'], operation: 'in' },
 
   // Null check
-  { field: "description", value: null, operation: "isNull" },
+  { field: 'description', value: null, operation: 'isNull' },
 ];
 ```
 
@@ -502,22 +502,22 @@ const filters: SearchFilter[] = [
 ```typescript
 const filters: SearchFilter[] = [
   // Search in related user's role
-  { field: "role", value: "ADMIN", operation: "eq", relation: "user" },
+  { field: 'role', value: 'ADMIN', operation: 'eq', relation: 'user' },
 
   // Search in store type name
   {
-    field: "title",
-    value: "restaurant",
-    operation: "contains",
-    relation: "storeType",
+    field: 'title',
+    value: 'restaurant',
+    operation: 'contains',
+    relation: 'storeType',
   },
 
   // Search in user's profile
   {
-    field: "firstName",
-    value: "John",
-    operation: "contains",
-    relation: "user.Profile",
+    field: 'firstName',
+    value: 'John',
+    operation: 'contains',
+    relation: 'user.Profile',
   },
 ];
 ```
@@ -527,18 +527,18 @@ const filters: SearchFilter[] = [
 ```typescript
 const filters: SearchFilter[] = [
   // Active stores created in 2024
-  { field: "active", value: true, operation: "eq" },
+  { field: 'active', value: true, operation: 'eq' },
   {
-    field: "createdAt",
-    value: [new Date("2024-01-01"), new Date("2024-12-31")],
-    operation: "between",
+    field: 'createdAt',
+    value: [new Date('2024-01-01'), new Date('2024-12-31')],
+    operation: 'between',
   },
 
   // Stores with specific title pattern
-  { field: "title", value: "restaurant", operation: "contains" },
+  { field: 'title', value: 'restaurant', operation: 'contains' },
 
   // Stores owned by admin users
-  { field: "role", value: "ADMIN", operation: "eq", relation: "user" },
+  { field: 'role', value: 'ADMIN', operation: 'eq', relation: 'user' },
 ];
 ```
 
@@ -546,7 +546,7 @@ const filters: SearchFilter[] = [
 
 ```typescript
 const filters: SearchFilter[] = [
-  { field: "title", value: "Restaurant", operation: "eq", caseSensitive: true },
+  { field: 'title', value: 'Restaurant', operation: 'eq', caseSensitive: true },
 ];
 ```
 
@@ -555,13 +555,13 @@ const filters: SearchFilter[] = [
 ```typescript
 const queryBuilder = new StoreQueryBuilder().filter({
   active: true,
-  storeTypeId: { in: ["restaurant-type", "cafe-type"] },
+  storeTypeId: { in: ['restaurant-type', 'cafe-type'] },
   createdAt: {
-    gte: new Date("2024-01-01"),
-    lte: new Date("2024-12-31"),
+    gte: new Date('2024-01-01'),
+    lte: new Date('2024-12-31'),
   },
   user: {
-    role: "STORE_ADMIN",
+    role: 'STORE_ADMIN',
   },
 });
 ```
@@ -570,9 +570,9 @@ const queryBuilder = new StoreQueryBuilder().filter({
 
 ```typescript
 const queryBuilder = new StoreQueryBuilder()
-  .search("restaurant", ["title", "description"])
+  .search('restaurant', ['title', 'description'])
   .filter({
-    OR: [{ active: true }, { storeType: { title: { contains: "food" } } }],
+    OR: [{ active: true }, { storeType: { title: { contains: 'food' } } }],
   });
 ```
 
@@ -582,7 +582,7 @@ const queryBuilder = new StoreQueryBuilder()
 const config: ListEndpointConfig<Store> = {
   // ... other config
   transformData: (data: Store[]) => {
-    return data.map((store) => ({
+    return data.map(store => ({
       ...store,
       displayName: `${store.title} (${store.storeType?.title})`,
       isActive: store.active,
@@ -599,8 +599,8 @@ const config: ListEndpointConfig<Store> = {
   // ... other config
   validateAccess: async (ctx: any) => {
     // Custom access validation logic
-    if (ctx.user.role === "ADMIN") return true;
-    if (ctx.user.role === "STORE_ADMIN") {
+    if (ctx.user.role === 'ADMIN') return true;
+    if (ctx.user.role === 'STORE_ADMIN') {
       // Only allow access to own stores
       return true; // Additional logic needed
     }
@@ -740,11 +740,11 @@ return result;
 const stores = await ctx.db.store.findMany({
   where: {
     deletedAt: null,
-    title: { contains: search, mode: "insensitive" },
+    title: { contains: search, mode: 'insensitive' },
     active: true,
   },
   include: { storeType: true },
-  orderBy: { createdAt: "desc" },
+  orderBy: { createdAt: 'desc' },
   take: limit,
   skip: offset,
 });

@@ -1,4 +1,4 @@
-import { GlobalQueue } from ".";
+import { GlobalQueue } from '.';
 
 export interface OtpJobData {
   userId?: string;
@@ -8,6 +8,6 @@ export interface OtpJobData {
 
 export class OtpQueue extends GlobalQueue<OtpJobData> {
   constructor() {
-    super("otp-queue");
+    super('otp-queue');
   }
 }

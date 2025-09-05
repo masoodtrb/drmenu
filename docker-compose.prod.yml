@@ -30,7 +30,13 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -60,7 +66,11 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-drmenu}"]
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-drmenu}',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -85,7 +95,7 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD:-}', 'ping']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -104,8 +114,8 @@ services:
     container_name: drmenu_nginx_prod
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - certbot_certs:/etc/letsencrypt

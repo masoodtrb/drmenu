@@ -1,20 +1,25 @@
-"use client";
+'use client';
+
 // ^-- to make sure we can mount the Provider from a server component
-import type { QueryClient } from "@tanstack/react-query";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink } from "@trpc/client";
-import { createTRPCReact } from "@trpc/react-query";
-import { useState } from "react";
-import { makeQueryClient } from "./queryClient";
-import { AppRouter } from "@/trpc/server/api";
-import { getUrl, transformer } from "../shared";
-import { TanStackReactQueryDevtools } from "@/components/TanStackReactQueryDevtools";
-import { useUserStore } from "@/lib/store/userStore";
+import { useState } from 'react';
+
+import { TanStackReactQueryDevtools } from '@/components/TanStackReactQueryDevtools';
+import { useUserStore } from '@/lib/store/userStore';
+import { AppRouter } from '@/trpc/server/api';
+
+import { httpBatchLink } from '@trpc/client';
+import { createTRPCReact } from '@trpc/react-query';
+
+import type { QueryClient } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+
+import { getUrl, transformer } from '../shared';
+import { makeQueryClient } from './queryClient';
 
 export const trpc = createTRPCReact<AppRouter>();
 let clientQueryClientSingleton: QueryClient;
 function getQueryClient() {
-  if (typeof window === "undefined") {
+  if (typeof window === 'undefined') {
     // Server: always make a new query client
     return makeQueryClient();
   }

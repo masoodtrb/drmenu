@@ -1,26 +1,29 @@
+import { Role } from '@prisma/client';
+
 import {
   createTRPCRouter,
   privateProcedure,
   publicProcedure,
   requireRoles,
-} from "@/trpc/server";
-import { TRPCError } from "@trpc/server";
-import { Role } from "@prisma/client";
+} from '@/trpc/server';
+import { getErrorMessage } from '@/trpc/server/constants/messages';
+
+import { TRPCError } from '@trpc/server';
+
 import {
   createCategorySchema,
-  updateCategorySchema,
-  getCategoryByIdSchema,
-  deleteCategorySchema,
-  listCategoriesSchema,
   createItemSchema,
-  updateItemSchema,
-  getItemByIdSchema,
+  deleteCategorySchema,
   deleteItemSchema,
-  listItemsSchema,
-  getPublicMenuSchema,
+  getCategoryByIdSchema,
+  getItemByIdSchema,
   getPublicItemSchema,
-} from "./validation";
-import { getErrorMessage } from "@/trpc/server/constants/messages";
+  getPublicMenuSchema,
+  listCategoriesSchema,
+  listItemsSchema,
+  updateCategorySchema,
+  updateItemSchema,
+} from './validation';
 
 export const menuRouter = createTRPCRouter({
   // ==================== CATEGORY ENDPOINTS ====================
@@ -47,8 +50,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!storeBranch) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Store branch not found or access denied",
+            code: 'NOT_FOUND',
+            message: 'Store branch not found or access denied',
           });
         }
 
@@ -63,8 +66,8 @@ export const menuRouter = createTRPCRouter({
 
         if (existingCategory) {
           throw new TRPCError({
-            code: "CONFLICT",
-            message: "Category with this title already exists in this branch",
+            code: 'CONFLICT',
+            message: 'Category with this title already exists in this branch',
           });
         }
 
@@ -95,8 +98,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create category",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create category',
         });
       }
     }),
@@ -134,12 +137,12 @@ export const menuRouter = createTRPCRouter({
                     file: true,
                   },
                   orderBy: {
-                    order: "asc",
+                    order: 'asc',
                   },
                 },
               },
               orderBy: {
-                createdAt: "desc",
+                createdAt: 'desc',
               },
             },
           },
@@ -147,8 +150,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!category) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Category not found",
+            code: 'NOT_FOUND',
+            message: 'Category not found',
           });
         }
 
@@ -159,8 +162,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch category",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch category',
         });
       }
     }),
@@ -184,8 +187,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!storeBranch) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Store branch not found or access denied",
+            code: 'NOT_FOUND',
+            message: 'Store branch not found or access denied',
           });
         }
 
@@ -200,8 +203,8 @@ export const menuRouter = createTRPCRouter({
 
         if (search) {
           whereClause.OR = [
-            { title: { contains: search, mode: "insensitive" } },
-            { description: { contains: search, mode: "insensitive" } },
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
           ];
         }
 
@@ -219,7 +222,7 @@ export const menuRouter = createTRPCRouter({
               },
             },
             orderBy: {
-              createdAt: "desc",
+              createdAt: 'desc',
             },
             take: limit,
             skip: offset,
@@ -240,8 +243,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch categories",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch categories',
         });
       }
     }),
@@ -268,8 +271,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!existingCategory) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Category not found or access denied",
+            code: 'NOT_FOUND',
+            message: 'Category not found or access denied',
           });
         }
 
@@ -286,8 +289,8 @@ export const menuRouter = createTRPCRouter({
 
           if (titleConflict) {
             throw new TRPCError({
-              code: "CONFLICT",
-              message: "Category with this title already exists in this branch",
+              code: 'CONFLICT',
+              message: 'Category with this title already exists in this branch',
             });
           }
         }
@@ -320,8 +323,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to update category",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update category',
         });
       }
     }),
@@ -355,16 +358,16 @@ export const menuRouter = createTRPCRouter({
 
         if (!category) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Category not found or access denied",
+            code: 'NOT_FOUND',
+            message: 'Category not found or access denied',
           });
         }
 
         // Check if category has items
         if (category.Item.length > 0) {
           throw new TRPCError({
-            code: "CONFLICT",
-            message: "Cannot delete category with existing items",
+            code: 'CONFLICT',
+            message: 'Cannot delete category with existing items',
           });
         }
 
@@ -376,7 +379,7 @@ export const menuRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: "Category deleted successfully",
+          message: 'Category deleted successfully',
         };
       } catch (err: unknown) {
         console.error(err);
@@ -384,8 +387,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to delete category",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete category',
         });
       }
     }),
@@ -423,8 +426,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!category) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Category not found or access denied",
+            code: 'NOT_FOUND',
+            message: 'Category not found or access denied',
           });
         }
 
@@ -439,8 +442,8 @@ export const menuRouter = createTRPCRouter({
 
         if (existingItem) {
           throw new TRPCError({
-            code: "CONFLICT",
-            message: "Item with this title already exists in this category",
+            code: 'CONFLICT',
+            message: 'Item with this title already exists in this category',
           });
         }
 
@@ -481,8 +484,8 @@ export const menuRouter = createTRPCRouter({
 
           if (files.length !== imageIds.length) {
             throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Some files not found or access denied",
+              code: 'BAD_REQUEST',
+              message: 'Some files not found or access denied',
             });
           }
 
@@ -517,7 +520,7 @@ export const menuRouter = createTRPCRouter({
                 file: true,
               },
               orderBy: {
-                order: "asc",
+                order: 'asc',
               },
             },
           },
@@ -533,8 +536,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create item",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create item',
         });
       }
     }),
@@ -573,7 +576,7 @@ export const menuRouter = createTRPCRouter({
                 file: true,
               },
               orderBy: {
-                order: "asc",
+                order: 'asc',
               },
             },
           },
@@ -581,8 +584,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!item) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Item not found",
+            code: 'NOT_FOUND',
+            message: 'Item not found',
           });
         }
 
@@ -593,8 +596,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch item",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch item',
         });
       }
     }),
@@ -637,8 +640,8 @@ export const menuRouter = createTRPCRouter({
 
           if (!category) {
             throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "Category not found or access denied",
+              code: 'NOT_FOUND',
+              message: 'Category not found or access denied',
             });
           }
         }
@@ -661,8 +664,8 @@ export const menuRouter = createTRPCRouter({
 
         if (search) {
           whereClause.OR = [
-            { title: { contains: search, mode: "insensitive" } },
-            { description: { contains: search, mode: "insensitive" } },
+            { title: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
           ];
         }
 
@@ -692,12 +695,12 @@ export const menuRouter = createTRPCRouter({
                   file: true,
                 },
                 orderBy: {
-                  order: "asc",
+                  order: 'asc',
                 },
               },
             },
             orderBy: {
-              createdAt: "desc",
+              createdAt: 'desc',
             },
             take: limit,
             skip: offset,
@@ -718,8 +721,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch items",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch items',
         });
       }
     }),
@@ -758,8 +761,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!existingItem) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Item not found or access denied",
+            code: 'NOT_FOUND',
+            message: 'Item not found or access denied',
           });
         }
 
@@ -778,8 +781,8 @@ export const menuRouter = createTRPCRouter({
 
           if (!category) {
             throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "Category not found or access denied",
+              code: 'NOT_FOUND',
+              message: 'Category not found or access denied',
             });
           }
         }
@@ -797,8 +800,8 @@ export const menuRouter = createTRPCRouter({
 
           if (titleConflict) {
             throw new TRPCError({
-              code: "CONFLICT",
-              message: "Item with this title already exists in this category",
+              code: 'CONFLICT',
+              message: 'Item with this title already exists in this category',
             });
           }
         }
@@ -848,8 +851,8 @@ export const menuRouter = createTRPCRouter({
 
             if (files.length !== imageIds.length) {
               throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "Some files not found or access denied",
+                code: 'BAD_REQUEST',
+                message: 'Some files not found or access denied',
               });
             }
 
@@ -885,7 +888,7 @@ export const menuRouter = createTRPCRouter({
                 file: true,
               },
               orderBy: {
-                order: "asc",
+                order: 'asc',
               },
             },
           },
@@ -901,8 +904,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to update item",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update item',
         });
       }
     }),
@@ -931,8 +934,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!item) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Item not found or access denied",
+            code: 'NOT_FOUND',
+            message: 'Item not found or access denied',
           });
         }
 
@@ -944,7 +947,7 @@ export const menuRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: "Item deleted successfully",
+          message: 'Item deleted successfully',
         };
       } catch (err: unknown) {
         console.error(err);
@@ -952,8 +955,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to delete item",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete item',
         });
       }
     }),
@@ -985,8 +988,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!storeBranch) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Store branch not found or inactive",
+            code: 'NOT_FOUND',
+            message: 'Store branch not found or inactive',
           });
         }
 
@@ -1013,17 +1016,17 @@ export const menuRouter = createTRPCRouter({
                     file: true,
                   },
                   orderBy: {
-                    order: "asc",
+                    order: 'asc',
                   },
                 },
               },
               orderBy: {
-                createdAt: "desc",
+                createdAt: 'desc',
               },
             },
           },
           orderBy: {
-            createdAt: "asc",
+            createdAt: 'asc',
           },
         });
 
@@ -1037,8 +1040,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch menu",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch menu',
         });
       }
     }),
@@ -1083,7 +1086,7 @@ export const menuRouter = createTRPCRouter({
                 file: true,
               },
               orderBy: {
-                order: "asc",
+                order: 'asc',
               },
             },
           },
@@ -1091,8 +1094,8 @@ export const menuRouter = createTRPCRouter({
 
         if (!item) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Item not found or inactive",
+            code: 'NOT_FOUND',
+            message: 'Item not found or inactive',
           });
         }
 
@@ -1103,8 +1106,8 @@ export const menuRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch item",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch item',
         });
       }
     }),

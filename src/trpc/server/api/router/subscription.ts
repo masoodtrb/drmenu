@@ -1,22 +1,24 @@
+import { PaymentStatus, Role, SubscriptionStatus } from '@prisma/client';
+import { z } from 'zod';
+
 import {
   createTRPCRouter,
   privateProcedure,
   publicProcedure,
   requireRoles,
-} from "@/trpc/server";
-import { TRPCError } from "@trpc/server";
-import { Role, SubscriptionStatus, PaymentStatus } from "@prisma/client";
-import { z } from "zod";
+} from '@/trpc/server';
+
+import { TRPCError } from '@trpc/server';
 
 // Validation schemas
 const createSubscriptionPlanSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, 'Name is required'),
   nameFa: z.string().optional(),
-  description: z.string().min(1, "Description is required"),
+  description: z.string().min(1, 'Description is required'),
   descriptionFa: z.string().optional(),
-  price: z.number().positive("Price must be positive"),
-  currency: z.string().default("IRR"),
-  interval: z.enum(["MONTHLY", "YEARLY"]),
+  price: z.number().positive('Price must be positive'),
+  currency: z.string().default('IRR'),
+  interval: z.enum(['MONTHLY', 'YEARLY']),
   features: z.record(z.any()),
   active: z.boolean().default(true),
   isDefault: z.boolean().default(false),
@@ -29,13 +31,13 @@ const createSubscriptionPlanSchema = z.object({
 
 const updateSubscriptionPlanSchema = z.object({
   id: z.string(),
-  name: z.string().min(1, "Name is required").optional(),
+  name: z.string().min(1, 'Name is required').optional(),
   nameFa: z.string().optional(),
-  description: z.string().min(1, "Description is required").optional(),
+  description: z.string().min(1, 'Description is required').optional(),
   descriptionFa: z.string().optional(),
-  price: z.number().positive("Price must be positive").optional(),
+  price: z.number().positive('Price must be positive').optional(),
   currency: z.string().optional(),
-  interval: z.enum(["MONTHLY", "YEARLY"]).optional(),
+  interval: z.enum(['MONTHLY', 'YEARLY']).optional(),
   features: z.record(z.any()).optional(),
   active: z.boolean().optional(),
   isDefault: z.boolean().optional(),
@@ -81,8 +83,8 @@ export const subscriptionRouter = createTRPCRouter({
 
       if (existingPlan) {
         throw new TRPCError({
-          code: "CONFLICT",
-          message: "A plan with this name already exists",
+          code: 'CONFLICT',
+          message: 'A plan with this name already exists',
         });
       }
 
@@ -138,7 +140,7 @@ export const subscriptionRouter = createTRPCRouter({
       const [plans, total] = await Promise.all([
         db.subscriptionPlan.findMany({
           where,
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           take: limit,
           skip: offset,
         }),
@@ -167,8 +169,8 @@ export const subscriptionRouter = createTRPCRouter({
 
       if (!existingPlan) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Subscription plan not found",
+          code: 'NOT_FOUND',
+          message: 'Subscription plan not found',
         });
       }
 
@@ -180,8 +182,8 @@ export const subscriptionRouter = createTRPCRouter({
 
         if (nameExists) {
           throw new TRPCError({
-            code: "CONFLICT",
-            message: "A plan with this name already exists",
+            code: 'CONFLICT',
+            message: 'A plan with this name already exists',
           });
         }
       }
@@ -215,23 +217,23 @@ export const subscriptionRouter = createTRPCRouter({
         where: { id },
         include: {
           subscriptions: {
-            where: { status: "ACTIVE" },
+            where: { status: 'ACTIVE' },
           },
         },
       });
 
       if (!plan) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Subscription plan not found",
+          code: 'NOT_FOUND',
+          message: 'Subscription plan not found',
         });
       }
 
       // Check if plan has active subscriptions
       if (plan.subscriptions.length > 0) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Cannot delete plan with active subscriptions",
+          code: 'BAD_REQUEST',
+          message: 'Cannot delete plan with active subscriptions',
         });
       }
 
@@ -258,8 +260,8 @@ export const subscriptionRouter = createTRPCRouter({
 
       if (!plan) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Subscription plan not found or inactive",
+          code: 'NOT_FOUND',
+          message: 'Subscription plan not found or inactive',
         });
       }
 
@@ -267,21 +269,21 @@ export const subscriptionRouter = createTRPCRouter({
       const existingSubscription = await db.subscription.findFirst({
         where: {
           userId: user.id,
-          status: { in: ["ACTIVE", "TRIAL"] },
+          status: { in: ['ACTIVE', 'TRIAL'] },
         },
       });
 
       if (existingSubscription) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "User already has an active subscription",
+          code: 'BAD_REQUEST',
+          message: 'User already has an active subscription',
         });
       }
 
       // Calculate subscription dates
       const startDate = new Date();
       const endDate = new Date();
-      if (plan.interval === "MONTHLY") {
+      if (plan.interval === 'MONTHLY') {
         endDate.setMonth(endDate.getMonth() + 1);
       } else {
         endDate.setFullYear(endDate.getFullYear() + 1);
@@ -292,7 +294,7 @@ export const subscriptionRouter = createTRPCRouter({
         data: {
           userId: user.id,
           planId: plan.id,
-          status: "ACTIVE",
+          status: 'ACTIVE',
           startDate,
           endDate,
           paymentProvider,
@@ -306,7 +308,7 @@ export const subscriptionRouter = createTRPCRouter({
           subscriptionId: subscription.id,
           amount: plan.price,
           currency: plan.currency,
-          status: "PENDING",
+          status: 'PENDING',
           paymentProvider,
           paymentMethod,
           description: `Subscription to ${plan.name}`,
@@ -328,12 +330,12 @@ export const subscriptionRouter = createTRPCRouter({
     const subscription = await db.subscription.findFirst({
       where: {
         userId: user.id,
-        status: { in: ["ACTIVE", "TRIAL", "PAST_DUE"] },
+        status: { in: ['ACTIVE', 'TRIAL', 'PAST_DUE'] },
       },
       include: {
         plan: true,
         payments: {
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           take: 5,
         },
         branchMenuSubscriptions: {
@@ -418,14 +420,14 @@ export const subscriptionRouter = createTRPCRouter({
         where: {
           id: subscriptionId,
           userId: user.id,
-          status: { in: ["ACTIVE", "TRIAL"] },
+          status: { in: ['ACTIVE', 'TRIAL'] },
         },
       });
 
       if (!subscription) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Active subscription not found",
+          code: 'NOT_FOUND',
+          message: 'Active subscription not found',
         });
       }
 
@@ -434,7 +436,7 @@ export const subscriptionRouter = createTRPCRouter({
         data: {
           cancelAtPeriodEnd,
           cancelledAt: cancelAtPeriodEnd ? new Date() : null,
-          status: cancelAtPeriodEnd ? "CANCELLED" : subscription.status,
+          status: cancelAtPeriodEnd ? 'CANCELLED' : subscription.status,
         },
       });
 
@@ -455,8 +457,8 @@ export const subscriptionRouter = createTRPCRouter({
 
       if (!newPlan) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "New subscription plan not found",
+          code: 'NOT_FOUND',
+          message: 'New subscription plan not found',
         });
       }
 
@@ -465,15 +467,15 @@ export const subscriptionRouter = createTRPCRouter({
         where: {
           id: subscriptionId,
           userId: user.id,
-          status: { in: ["ACTIVE", "TRIAL"] },
+          status: { in: ['ACTIVE', 'TRIAL'] },
         },
         include: { plan: true },
       });
 
       if (!currentSubscription) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Active subscription not found",
+          code: 'NOT_FOUND',
+          message: 'Active subscription not found',
         });
       }
 
@@ -501,15 +503,15 @@ export const subscriptionRouter = createTRPCRouter({
       const subscription = await db.subscription.findFirst({
         where: {
           userId: user.id,
-          status: { in: ["ACTIVE", "TRIAL"] },
+          status: { in: ['ACTIVE', 'TRIAL'] },
         },
         include: { plan: true },
       });
 
       if (!subscription) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Active subscription required to publish menu",
+          code: 'FORBIDDEN',
+          message: 'Active subscription required to publish menu',
         });
       }
 
@@ -524,16 +526,16 @@ export const subscriptionRouter = createTRPCRouter({
 
       if (!storeBranch) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Store branch not found",
+          code: 'NOT_FOUND',
+          message: 'Store branch not found',
         });
       }
 
       // Check if menu is already published
       if (storeBranch.menuPublished) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Menu is already published",
+          code: 'BAD_REQUEST',
+          message: 'Menu is already published',
         });
       }
 
@@ -548,7 +550,7 @@ export const subscriptionRouter = createTRPCRouter({
 
       if (publishedMenusCount >= subscription.plan.maxPublishedMenus) {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: `Maximum ${subscription.plan.maxPublishedMenus} published menus allowed`,
         });
       }
@@ -592,8 +594,8 @@ export const subscriptionRouter = createTRPCRouter({
 
       if (!storeBranch) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Store branch not found",
+          code: 'NOT_FOUND',
+          message: 'Store branch not found',
         });
       }
 
@@ -634,8 +636,8 @@ export const subscriptionRouter = createTRPCRouter({
         store: { deletedAt: null },
         ...(search && {
           OR: [
-            { title: { contains: search, mode: "insensitive" } },
-            { store: { title: { contains: search, mode: "insensitive" } } },
+            { title: { contains: search, mode: 'insensitive' } },
+            { store: { title: { contains: search, mode: 'insensitive' } } },
           ],
         }),
       };
@@ -657,16 +659,16 @@ export const subscriptionRouter = createTRPCRouter({
                   include: {
                     images: {
                       include: { file: true },
-                      orderBy: { order: "asc" },
+                      orderBy: { order: 'asc' },
                     },
                   },
-                  orderBy: { sortOrder: "asc" },
+                  orderBy: { sortOrder: 'asc' },
                 },
               },
-              orderBy: { sortOrder: "asc" },
+              orderBy: { sortOrder: 'asc' },
             },
           },
-          orderBy: { menuPublishedAt: "desc" },
+          orderBy: { menuPublishedAt: 'desc' },
           take: limit,
           skip: offset,
         }),
@@ -700,15 +702,15 @@ export const subscriptionRouter = createTRPCRouter({
         }),
         db.subscription.count(),
         db.subscription.count({
-          where: { status: { in: ["ACTIVE", "TRIAL"] } },
+          where: { status: { in: ['ACTIVE', 'TRIAL'] } },
         }),
         db.payment.aggregate({
-          where: { status: "COMPLETED" },
+          where: { status: 'COMPLETED' },
           _sum: { amount: true },
         }),
         db.payment.aggregate({
           where: {
-            status: "COMPLETED",
+            status: 'COMPLETED',
             createdAt: {
               gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
             },

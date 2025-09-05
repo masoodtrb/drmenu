@@ -272,11 +272,11 @@ updateItemSchema = {
 
 ```typescript
 const category = await trpc.menu.createCategory.mutate({
-  title: "Main Dishes",
-  icon: "🍽️",
-  description: "Our signature main dishes",
+  title: 'Main Dishes',
+  icon: '🍽️',
+  description: 'Our signature main dishes',
   active: true,
-  storeBranchId: "branch_id_here",
+  storeBranchId: 'branch_id_here',
 });
 ```
 
@@ -284,14 +284,14 @@ const category = await trpc.menu.createCategory.mutate({
 
 ```typescript
 const item = await trpc.menu.createItem.mutate({
-  title: "Grilled Salmon",
-  icon: "🐟",
-  description: "Fresh grilled salmon with herbs",
+  title: 'Grilled Salmon',
+  icon: '🐟',
+  description: 'Fresh grilled salmon with herbs',
   price: 24.99,
-  currency: "USD",
+  currency: 'USD',
   active: true,
-  categoryId: "category_id_here",
-  imageIds: ["file_id_1", "file_id_2"],
+  categoryId: 'category_id_here',
+  imageIds: ['file_id_1', 'file_id_2'],
 });
 ```
 
@@ -299,7 +299,7 @@ const item = await trpc.menu.createItem.mutate({
 
 ```typescript
 const menu = await trpc.menu.getPublicMenu.query({
-  storeBranchId: "branch_id_here",
+  storeBranchId: 'branch_id_here',
   includeInactive: false,
 });
 ```

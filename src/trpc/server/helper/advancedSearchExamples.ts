@@ -1,12 +1,11 @@
 // Advanced Search Examples for Query Builder
 // This file demonstrates how to use the enhanced search functionality with array of objects
-
-import { SearchFilter, FilterOperation } from "./queryBuilder";
+import { FilterOperation, SearchFilter } from './queryBuilder';
 import {
+  FileQueryBuilder,
   StoreQueryBuilder,
   UserQueryBuilder,
-  FileQueryBuilder,
-} from "./queryBuilder";
+} from './queryBuilder';
 
 // ============================================================================
 // BASIC SEARCH EXAMPLES
@@ -15,23 +14,23 @@ import {
 export const basicSearchExamples = {
   // Simple equality search
   findStoreByTitle: (title: string): SearchFilter[] => [
-    { field: "title", value: title, operation: "eq" },
+    { field: 'title', value: title, operation: 'eq' },
   ],
 
   // Contains search (case-insensitive)
   findStoresContaining: (text: string): SearchFilter[] => [
-    { field: "title", value: text, operation: "contains" },
+    { field: 'title', value: text, operation: 'contains' },
   ],
 
   // Multiple field search
   findStoresByTitleOrDescription: (text: string): SearchFilter[] => [
-    { field: "title", value: text, operation: "contains" },
-    { field: "description", value: text, operation: "contains" },
+    { field: 'title', value: text, operation: 'contains' },
+    { field: 'description', value: text, operation: 'contains' },
   ],
 
   // Numeric comparisons
   findStoresByActiveStatus: (active: boolean): SearchFilter[] => [
-    { field: "active", value: active, operation: "eq" },
+    { field: 'active', value: active, operation: 'eq' },
   ],
 
   // Date range search
@@ -39,7 +38,7 @@ export const basicSearchExamples = {
     startDate: Date,
     endDate: Date
   ): SearchFilter[] => [
-    { field: "createdAt", value: [startDate, endDate], operation: "between" },
+    { field: 'createdAt', value: [startDate, endDate], operation: 'between' },
   ],
 };
 
@@ -50,43 +49,43 @@ export const basicSearchExamples = {
 export const advancedSearchExamples = {
   // Complex store search with multiple conditions
   findRestaurantsInActiveStatus: (): SearchFilter[] => [
-    { field: "title", value: "restaurant", operation: "contains" },
-    { field: "active", value: true, operation: "eq" },
-    { field: "createdAt", value: new Date("2024-01-01"), operation: "gte" },
+    { field: 'title', value: 'restaurant', operation: 'contains' },
+    { field: 'active', value: true, operation: 'eq' },
+    { field: 'createdAt', value: new Date('2024-01-01'), operation: 'gte' },
   ],
 
   // Search with nested relations
   findStoresByUserRole: (role: string): SearchFilter[] => [
-    { field: "role", value: role, operation: "eq", relation: "user" },
+    { field: 'role', value: role, operation: 'eq', relation: 'user' },
   ],
 
   // Search with store type information
   findStoresByTypeName: (typeName: string): SearchFilter[] => [
     {
-      field: "title",
+      field: 'title',
       value: typeName,
-      operation: "contains",
-      relation: "storeType",
+      operation: 'contains',
+      relation: 'storeType',
     },
   ],
 
   // Multiple store types
   findStoresByMultipleTypes: (typeIds: string[]): SearchFilter[] => [
-    { field: "storeTypeId", value: typeIds, operation: "in" },
+    { field: 'storeTypeId', value: typeIds, operation: 'in' },
   ],
 
   // Case-sensitive search
   findStoresExactMatch: (title: string): SearchFilter[] => [
-    { field: "title", value: title, operation: "eq", caseSensitive: true },
+    { field: 'title', value: title, operation: 'eq', caseSensitive: true },
   ],
 
   // Pattern matching
   findStoresStartingWith: (prefix: string): SearchFilter[] => [
-    { field: "title", value: prefix, operation: "startsWith" },
+    { field: 'title', value: prefix, operation: 'startsWith' },
   ],
 
   findStoresEndingWith: (suffix: string): SearchFilter[] => [
-    { field: "title", value: suffix, operation: "endsWith" },
+    { field: 'title', value: suffix, operation: 'endsWith' },
   ],
 };
 
@@ -97,28 +96,28 @@ export const advancedSearchExamples = {
 export const userSearchExamples = {
   // Find users by role
   findUsersByRole: (role: string): SearchFilter[] => [
-    { field: "role", value: role, operation: "eq" },
+    { field: 'role', value: role, operation: 'eq' },
   ],
 
   // Find active users created after date
   findActiveUsersAfterDate: (date: Date): SearchFilter[] => [
-    { field: "active", value: true, operation: "eq" },
-    { field: "createdAt", value: date, operation: "gte" },
+    { field: 'active', value: true, operation: 'eq' },
+    { field: 'createdAt', value: date, operation: 'gte' },
   ],
 
   // Find users with username pattern
   findUsersByUsernamePattern: (pattern: string): SearchFilter[] => [
-    { field: "username", value: pattern, operation: "contains" },
+    { field: 'username', value: pattern, operation: 'contains' },
   ],
 
   // Find users with specific roles
   findUsersByMultipleRoles: (roles: string[]): SearchFilter[] => [
-    { field: "role", value: roles, operation: "in" },
+    { field: 'role', value: roles, operation: 'in' },
   ],
 
   // Find users with profile information
   findUsersWithProfile: (): SearchFilter[] => [
-    { field: "id", value: null, operation: "isNotNull", relation: "Profile" },
+    { field: 'id', value: null, operation: 'isNotNull', relation: 'Profile' },
   ],
 };
 
@@ -129,35 +128,35 @@ export const userSearchExamples = {
 export const fileSearchExamples = {
   // Find files by size range
   findFilesBySizeRange: (minSize: number, maxSize: number): SearchFilter[] => [
-    { field: "size", value: [minSize, maxSize], operation: "between" },
+    { field: 'size', value: [minSize, maxSize], operation: 'between' },
   ],
 
   // Find files by MIME type
   findFilesByMimeType: (mimeTypes: string[]): SearchFilter[] => [
-    { field: "mimeType", value: mimeTypes, operation: "in" },
+    { field: 'mimeType', value: mimeTypes, operation: 'in' },
   ],
 
   // Find published files
   findPublishedFiles: (): SearchFilter[] => [
-    { field: "published", value: true, operation: "eq" },
+    { field: 'published', value: true, operation: 'eq' },
   ],
 
   // Find files by owner
   findFilesByOwner: (ownerId: string): SearchFilter[] => [
-    { field: "ownerId", value: ownerId, operation: "eq" },
+    { field: 'ownerId', value: ownerId, operation: 'eq' },
   ],
 
   // Find files by storage type
   findFilesByStorageType: (storageType: string): SearchFilter[] => [
-    { field: "storageType", value: storageType, operation: "eq" },
+    { field: 'storageType', value: storageType, operation: 'eq' },
   ],
 
   // Find files with specific extensions
   findFilesByExtension: (extensions: string[]): SearchFilter[] => [
     {
-      field: "name",
-      value: extensions.map((ext) => `%${ext}`),
-      operation: "endsWith",
+      field: 'name',
+      value: extensions.map(ext => `%${ext}`),
+      operation: 'endsWith',
     },
   ],
 };
@@ -169,18 +168,18 @@ export const fileSearchExamples = {
 export const complexSearchExamples = {
   // Find stores with active branches
   findStoresWithActiveBranches: (): SearchFilter[] => [
-    { field: "active", value: true, operation: "eq" },
+    { field: 'active', value: true, operation: 'eq' },
     {
-      field: "id",
+      field: 'id',
       value: null,
-      operation: "isNotNull",
-      relation: "StoreBranch",
+      operation: 'isNotNull',
+      relation: 'StoreBranch',
     },
   ],
 
   // Find stores with specific user role
   findStoresByOwnerRole: (role: string): SearchFilter[] => [
-    { field: "role", value: role, operation: "eq", relation: "user" },
+    { field: 'role', value: role, operation: 'eq', relation: 'user' },
   ],
 
   // Find stores with multiple conditions
@@ -195,21 +194,21 @@ export const complexSearchExamples = {
 
     if (params.titlePattern) {
       filters.push({
-        field: "title",
+        field: 'title',
         value: params.titlePattern,
-        operation: "contains",
+        operation: 'contains',
       });
     }
 
     if (params.active !== undefined) {
-      filters.push({ field: "active", value: params.active, operation: "eq" });
+      filters.push({ field: 'active', value: params.active, operation: 'eq' });
     }
 
     if (params.storeTypeIds && params.storeTypeIds.length > 0) {
       filters.push({
-        field: "storeTypeId",
+        field: 'storeTypeId',
         value: params.storeTypeIds,
-        operation: "in",
+        operation: 'in',
       });
     }
 
@@ -217,9 +216,9 @@ export const complexSearchExamples = {
       const startDate = params.createdAfter || new Date(0);
       const endDate = params.createdBefore || new Date();
       filters.push({
-        field: "createdAt",
+        field: 'createdAt',
         value: [startDate, endDate],
-        operation: "between",
+        operation: 'between',
       });
     }
 
@@ -236,28 +235,28 @@ export const complexSearchExamples = {
 
     if (params.firstName) {
       filters.push({
-        field: "firstName",
+        field: 'firstName',
         value: params.firstName,
-        operation: "contains",
-        relation: "Profile",
+        operation: 'contains',
+        relation: 'Profile',
       });
     }
 
     if (params.lastName) {
       filters.push({
-        field: "lastName",
+        field: 'lastName',
         value: params.lastName,
-        operation: "contains",
-        relation: "Profile",
+        operation: 'contains',
+        relation: 'Profile',
       });
     }
 
     if (params.nationalId) {
       filters.push({
-        field: "nationalId",
+        field: 'nationalId',
         value: params.nationalId,
-        operation: "eq",
-        relation: "Profile",
+        operation: 'eq',
+        relation: 'Profile',
       });
     }
 
@@ -310,23 +309,23 @@ export const clientSideExamples = {
   searchStoresAdvanced: {
     // Find restaurants created in 2024
     restaurants2024: [
-      { field: "title", value: "restaurant", operation: "contains" },
+      { field: 'title', value: 'restaurant', operation: 'contains' },
       {
-        field: "createdAt",
-        value: [new Date("2024-01-01"), new Date("2024-12-31")],
-        operation: "between",
+        field: 'createdAt',
+        value: [new Date('2024-01-01'), new Date('2024-12-31')],
+        operation: 'between',
       },
     ],
 
     // Find active stores by specific user
     activeStoresByUser: (userId: string) => [
-      { field: "active", value: true, operation: "eq" },
-      { field: "userId", value: userId, operation: "eq" },
+      { field: 'active', value: true, operation: 'eq' },
+      { field: 'userId', value: userId, operation: 'eq' },
     ],
 
     // Find stores with specific types
     storesByTypes: (typeIds: string[]) => [
-      { field: "storeTypeId", value: typeIds, operation: "in" },
+      { field: 'storeTypeId', value: typeIds, operation: 'in' },
     ],
 
     // Find stores with title pattern and date range
@@ -335,8 +334,8 @@ export const clientSideExamples = {
       startDate: Date,
       endDate: Date
     ) => [
-      { field: "title", value: pattern, operation: "contains" },
-      { field: "createdAt", value: [startDate, endDate], operation: "between" },
+      { field: 'title', value: pattern, operation: 'contains' },
+      { field: 'createdAt', value: [startDate, endDate], operation: 'between' },
     ],
   },
 
@@ -368,14 +367,14 @@ export const searchUtilities = {
   ): SearchFilter => ({
     field,
     value: [startDate, endDate],
-    operation: "between",
+    operation: 'between',
   }),
 
   // Create a text search filter
   createTextSearchFilter: (
     field: string,
     text: string,
-    operation: "contains" | "startsWith" | "endsWith" = "contains"
+    operation: 'contains' | 'startsWith' | 'endsWith' = 'contains'
   ): SearchFilter => ({
     field,
     value: text,
@@ -386,21 +385,21 @@ export const searchUtilities = {
   createEqualityFilter: (field: string, value: any): SearchFilter => ({
     field,
     value,
-    operation: "eq",
+    operation: 'eq',
   }),
 
   // Create an "in" filter for arrays
   createInFilter: (field: string, values: any[]): SearchFilter => ({
     field,
     value: values,
-    operation: "in",
+    operation: 'in',
   }),
 
   // Create a null check filter
   createNullCheckFilter: (field: string, isNull: boolean): SearchFilter => ({
     field,
     value: null,
-    operation: isNull ? "isNull" : "isNotNull",
+    operation: isNull ? 'isNull' : 'isNotNull',
   }),
 
   // Combine multiple filters

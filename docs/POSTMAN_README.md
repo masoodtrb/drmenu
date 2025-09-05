@@ -82,7 +82,6 @@ After login, you can use any of the protected endpoints with the automatically s
 ### 2. Authentication Testing
 
 1. **Login as Admin**:
-
    - Use "Auth > Login" with admin credentials
    - This will set both `authToken` and `adminToken`
 
@@ -195,18 +194,15 @@ All endpoints include proper error handling and will return appropriate HTTP sta
 ### Common Issues
 
 1. **401 Unauthorized**:
-
    - Make sure you've logged in first
    - Check that the token is valid
    - Verify the Authorization header is set correctly
 
 2. **404 Not Found**:
-
    - Verify the endpoint URL is correct
    - Check that the server is running on the correct port
 
 3. **400 Bad Request**:
-
    - Verify the request body format is correct
    - Check that all required fields are provided
    - Ensure data types match the schema requirements

@@ -3,17 +3,19 @@ import {
   createContext,
   createTRPCRouter,
   getQueryClient,
-} from "@/trpc/server";
-import { testRouter } from "./router/test";
-import { createHydrationHelpers } from "@trpc/react-query/rsc";
-import { authRouter } from "./router/auth";
-import { profileRouter } from "./router/profile";
-import { fileRouter } from "./router/file";
-import { storeRouter } from "./router/store";
-import { menuRouter } from "./router/menu";
-import { subscriptionRouter } from "./router/subscription";
+} from '@/trpc/server';
 
-console.log("running");
+import { createHydrationHelpers } from '@trpc/react-query/rsc';
+
+import { authRouter } from './router/auth';
+import { fileRouter } from './router/file';
+import { menuRouter } from './router/menu';
+import { profileRouter } from './router/profile';
+import { storeRouter } from './router/store';
+import { subscriptionRouter } from './router/subscription';
+import { testRouter } from './router/test';
+
+console.log('running');
 
 export const appRouter = createTRPCRouter({
   test: testRouter,

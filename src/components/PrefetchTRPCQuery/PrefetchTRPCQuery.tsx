@@ -1,7 +1,7 @@
-import { RouterInputs } from "@/trpc/shared";
-import { getServerQueryClient } from "@/lib/util/getQueryClient";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getServerQueryClient } from '@/lib/util/getQueryClient';
+import { RouterInputs } from '@/trpc/shared';
 
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 
 type AccessPaths<T> = {
   [K in keyof T]: {
@@ -11,18 +11,16 @@ type AccessPaths<T> = {
 
 type ValueTypeAt<T, P extends string> = P extends `${infer K}.${infer L}`
   ? K extends keyof T
-  ? L extends keyof T[K]
-  ? T[K][L]
-  : never
-  : never
+    ? L extends keyof T[K]
+      ? T[K][L]
+      : never
+    : never
   : never;
 
-type ParamsType<T extends AccessPaths<RouterInputs>> = ValueTypeAt<
-  RouterInputs,
-  T
-> extends void | undefined
-  ? { params?: undefined }
-  : { params: ValueTypeAt<RouterInputs, T> };
+type ParamsType<T extends AccessPaths<RouterInputs>> =
+  ValueTypeAt<RouterInputs, T> extends void | undefined
+    ? { params?: undefined }
+    : { params: ValueTypeAt<RouterInputs, T> };
 
 export const PrefetchTRPCQuery = async <T extends AccessPaths<RouterInputs>>({
   children,
@@ -33,7 +31,7 @@ export const PrefetchTRPCQuery = async <T extends AccessPaths<RouterInputs>>({
   queryName: T;
 } & ParamsType<T>) => {
   const queryClient = getServerQueryClient();
-  const [router, procedure] = (queryName as string).split(".");
+  const [router, procedure] = (queryName as string).split('.');
 
   try {
     // Just let the frontend handle it if it fails
@@ -47,16 +45,16 @@ export const PrefetchTRPCQuery = async <T extends AccessPaths<RouterInputs>>({
     // );
 
     await queryClient.prefetchQuery({
-      queryKey: [[router, procedure], { input: params, type: "query" }],
-      queryFn: () => data
-    })
+      queryKey: [[router, procedure], { input: params, type: 'query' }],
+      queryFn: () => data,
+    });
     const dehydratedState = dehydrate(queryClient);
 
-    return <HydrationBoundary state={dehydratedState}>
-      {children}
-    </HydrationBoundary>;
+    return (
+      <HydrationBoundary state={dehydratedState}>{children}</HydrationBoundary>
+    );
   } catch (e) {
-    console.error(e, "PrefetchTRPCQuery failed");
+    console.error(e, 'PrefetchTRPCQuery failed');
 
     return <>{children}</>;
   }

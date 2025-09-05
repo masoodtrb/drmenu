@@ -50,8 +50,8 @@ declare global {
     [P in keyof T]?: T[P] extends (...args: never[]) => never
       ? T[P]
       : T[P] extends object
-      ? DeepPartial<T[P]>
-      : T[P];
+        ? DeepPartial<T[P]>
+        : T[P];
   };
 
   type SmartImageProps = {

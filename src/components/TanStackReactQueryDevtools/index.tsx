@@ -1,17 +1,16 @@
 'use client';
 
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren } from 'react';
 
-export const TanStackReactQueryDevtools = ({
-    children
-}: PropsWithChildren) => {
-    return (
-        <>
-            {children}
-            <div dir="ltr">
-                <ReactQueryDevtools />
-            </div>
-        </>
-    )
-}
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+export const TanStackReactQueryDevtools = ({ children }: PropsWithChildren) => {
+  return (
+    <>
+      {children}
+      <div dir="ltr">
+        <ReactQueryDevtools />
+      </div>
+    </>
+  );
+};

@@ -48,7 +48,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 
 <Card>
   <CardHeader>
@@ -64,7 +64,7 @@ import {
 ### Input Usage
 
 ```tsx
-import { Input } from "@/components/ui/input";
+import { Input } from '@/components/ui/input';
 
 <Input type="email" placeholder="Enter your email" />;
 ```

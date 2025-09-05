@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
 
 export interface SendMailOptions {
   to: string;
@@ -10,10 +10,10 @@ export interface SendMailOptions {
 // Validate required environment variables
 const validateEmailConfig = () => {
   if (!process.env.MAIL_USER) {
-    throw new Error("MAIL_USER environment variable is required");
+    throw new Error('MAIL_USER environment variable is required');
   }
   if (!process.env.MAIL_PASS) {
-    throw new Error("MAIL_PASS environment variable is required");
+    throw new Error('MAIL_PASS environment variable is required');
   }
 };
 
@@ -22,7 +22,7 @@ const createMailTransporter = () => {
   validateEmailConfig();
 
   return nodemailer.createTransport({
-    service: "gmail",
+    service: 'gmail',
     auth: {
       user: process.env.MAIL_USER,
       pass: process.env.MAIL_PASS, // This should be an App Password, not your regular password
@@ -48,18 +48,18 @@ export async function sendEmail({ to, subject, text, html }: SendMailOptions) {
 
   try {
     const info = await mailTransporter.sendMail(mailOptions);
-    console.log("Email sent successfully:", info.messageId);
+    console.log('Email sent successfully:', info.messageId);
     return info;
   } catch (error: any) {
-    console.error("Failed to send email:", error);
+    console.error('Failed to send email:', error);
 
     // Provide helpful error messages
-    if (error.code === "EAUTH") {
+    if (error.code === 'EAUTH') {
       throw new Error(
-        "Email authentication failed. Please check:\n" +
-          "1. Your Gmail username and password are correct\n" +
+        'Email authentication failed. Please check:\n' +
+          '1. Your Gmail username and password are correct\n' +
           "2. You're using an App Password (not your regular password)\n" +
-          "3. 2-Factor Authentication is enabled on your Google account\n" +
+          '3. 2-Factor Authentication is enabled on your Google account\n' +
           "4. The App Password is generated for 'Mail' or 'Other'"
       );
     }
@@ -71,20 +71,20 @@ export async function sendEmail({ to, subject, text, html }: SendMailOptions) {
 export const verifyTransporter = async () => {
   try {
     await mailTransporter.verify();
-    console.log("✅ Mail Server is ready to take our messages");
+    console.log('✅ Mail Server is ready to take our messages');
   } catch (error: any) {
-    console.error("❌ Mail Server verification failed:", error);
+    console.error('❌ Mail Server verification failed:', error);
 
-    if (error.code === "EAUTH") {
-      console.error("\n🔧 To fix Gmail authentication issues:");
-      console.error("1. Enable 2-Factor Authentication on your Google account");
+    if (error.code === 'EAUTH') {
+      console.error('\n🔧 To fix Gmail authentication issues:');
+      console.error('1. Enable 2-Factor Authentication on your Google account');
       console.error(
-        "2. Generate an App Password: https://myaccount.google.com/apppasswords"
+        '2. Generate an App Password: https://myaccount.google.com/apppasswords'
       );
       console.error(
-        "3. Use the App Password in your MAIL_PASS environment variable"
+        '3. Use the App Password in your MAIL_PASS environment variable'
       );
-      console.error("4. Make sure MAIL_USER is your full Gmail address");
+      console.error('4. Make sure MAIL_USER is your full Gmail address');
     }
 
     throw error;

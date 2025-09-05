@@ -138,6 +138,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.11
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^5.2.2
+        version: 5.2.2(prettier@3.6.2)
       '@types/node':
         specifier: ^20
         version: 20.19.8
@@ -1055,6 +1058,22 @@ packages:
     resolution: {integrity: sha512-/XGYhZ3foc5H0VM2jLSD/NyBRIOK4q9kfeml4+0x2DlL6xVuAcVEW+hTlTapAmejObg0i3eNqhkr2dT+eciwoQ==}
     peerDependencies:
       react: ^18 || ^19
+
+  '@trivago/prettier-plugin-sort-imports@5.2.2':
+    resolution: {integrity: sha512-fYDQA9e6yTNmA13TLVSA+WMQRc5Bn/c0EUBditUHNfMMxN7M82c38b1kEggVE3pLpZ0FwkwJkUEKMiOi52JXFA==}
+    engines: {node: '>18.12'}
+    peerDependencies:
+      '@vue/compiler-sfc': 3.x
+      prettier: 2.x - 3.x
+      prettier-plugin-svelte: 3.x
+      svelte: 4.x || 5.x
+    peerDependenciesMeta:
+      '@vue/compiler-sfc':
+        optional: true
+      prettier-plugin-svelte:
+        optional: true
+      svelte:
+        optional: true
 
   '@trpc/client@11.5.0':
     resolution: {integrity: sha512-32oH+KOAdo73jJKjU9tyG+vCjID6A28NgXwUNr691O5HjpF5yyTX51Zzyee8YtGzU89Nw/drCHdfA4gD7BN2eg==}
@@ -2209,6 +2228,9 @@ packages:
     resolution: {integrity: sha512-zptv57P3GpL+O0I7VdMJNBZCu+BPHVQUk55Ft8/QCJjTVxrnJHuVuX/0Bl2A6/+2oyR/ZMEuFKwmzqqZ/U5nPQ==}
     engines: {node: 20 || >=22}
 
+  javascript-natural-sort@0.7.1:
+    resolution: {integrity: sha512-nO6jcEfZWQXDhOiBtG2KvKyEptz7RVbpGP4vTD2hLBdmNQSsCiicO2Ioinv6UI4y9ukqnBpy+XZ9H6uLNgJTlw==}
+
   jiti@2.4.2:
     resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
     hasBin: true
@@ -2375,6 +2397,9 @@ packages:
 
   lodash.once@4.1.1:
     resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
+
+  lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
   log-symbols@6.0.0:
     resolution: {integrity: sha512-i24m8rpwhmPIS4zscNzK6MSEhk0DUWa/8iYQWxhffV8jkI4Phvs3F+quL5xvS0gdQR0FyTCMMH33Y78dDTzzIw==}
@@ -3893,6 +3918,18 @@ snapshots:
       '@tanstack/query-core': 5.83.0
       react: 19.1.0
 
+  '@trivago/prettier-plugin-sort-imports@5.2.2(prettier@3.6.2)':
+    dependencies:
+      '@babel/generator': 7.28.0
+      '@babel/parser': 7.28.0
+      '@babel/traverse': 7.28.0
+      '@babel/types': 7.28.1
+      javascript-natural-sort: 0.7.1
+      lodash: 4.17.21
+      prettier: 3.6.2
+    transitivePeerDependencies:
+      - supports-color
+
   '@trpc/client@11.5.0(@trpc/server@11.5.0(typescript@5.8.3))(typescript@5.8.3)':
     dependencies:
       '@trpc/server': 11.5.0(typescript@5.8.3)
@@ -5273,6 +5310,8 @@ snapshots:
     dependencies:
       '@isaacs/cliui': 8.0.2
 
+  javascript-natural-sort@0.7.1: {}
+
   jiti@2.4.2: {}
 
   js-tokens@4.0.0: {}
@@ -5413,6 +5452,8 @@ snapshots:
   lodash.merge@4.6.2: {}
 
   lodash.once@4.1.1: {}
+
+  lodash@4.17.21: {}
 
   log-symbols@6.0.0:
     dependencies:

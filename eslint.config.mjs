@@ -1,6 +1,6 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { FlatCompat } from '@eslint/eslintrc';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,35 +10,35 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
-    files: ["**/*.ts", "**/*.tsx"],
+    files: ['**/*.ts', '**/*.tsx'],
     rules: {
       // TypeScript specific rules
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-unsafe-function-type": "warn",
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unsafe-function-type': 'warn',
 
       // General rules
-      "prefer-const": "error",
-      "no-unused-vars": "off", // Turn off base rule as it can report incorrect errors
+      'prefer-const': 'error',
+      'no-unused-vars': 'off', // Turn off base rule as it can report incorrect errors
     },
   },
   {
-    files: ["**/*.js", "**/*.jsx"],
+    files: ['**/*.js', '**/*.jsx'],
     rules: {
-      "prefer-const": "error",
-      "no-unused-vars": "warn",
+      'prefer-const': 'error',
+      'no-unused-vars': 'warn',
     },
   },
   {
     ignores: [
-      "node_modules/**",
-      ".next/**",
-      "dist/**",
-      "build/**",
-      "*.config.js",
-      "*.config.mjs",
+      'node_modules/**',
+      '.next/**',
+      'dist/**',
+      'build/**',
+      '*.config.js',
+      '*.config.mjs',
     ],
   },
 ];

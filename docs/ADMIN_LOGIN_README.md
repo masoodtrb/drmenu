@@ -106,7 +106,7 @@ You can test the admin login using the provided Postman collection:
 A higher-order component that protects admin routes:
 
 ```tsx
-import AdminProtected from "@/components/AdminProtected";
+import AdminProtected from '@/components/AdminProtected';
 
 <AdminProtected>
   <YourAdminComponent />

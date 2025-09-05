@@ -1,6 +1,7 @@
-import { redisConnection } from "@/database/redis";
-import { prisma as db } from "@/trpc/server/db";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+
+import { redisConnection } from '@/database/redis';
+import { prisma as db } from '@/trpc/server/db';
 
 export async function GET() {
   try {
@@ -12,22 +13,22 @@ export async function GET() {
     await redis.ping();
 
     return NextResponse.json({
-      status: "healthy",
+      status: 'healthy',
       timestamp: new Date().toISOString(),
       services: {
-        database: "connected",
-        redis: "connected",
-        application: "running",
+        database: 'connected',
+        redis: 'connected',
+        application: 'running',
       },
     });
   } catch (error) {
-    console.error("Health check failed:", error);
+    console.error('Health check failed:', error);
 
     return NextResponse.json(
       {
-        status: "unhealthy",
+        status: 'unhealthy',
         timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 503 }
     );

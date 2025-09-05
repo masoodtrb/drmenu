@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 // Extend the global object to include the PrismaClient instance.
 declare global {
@@ -9,9 +9,9 @@ export const prisma =
   globalThis.prisma ||
   new PrismaClient({
     log:
-      process.env.NODE_ENV === "development"
-        ? ["query", "error", "warn"]
-        : ["error"],
+      process.env.NODE_ENV === 'development'
+        ? ['query', 'error', 'warn']
+        : ['error'],
   });
 
 // Soft delete middleware
@@ -33,18 +33,18 @@ export const prisma =
       "Subscription",
     ].includes(params.model) */
   ) {
-    if (params.action === "delete") {
+    if (params.action === 'delete') {
       // Change delete to update with deletedAt timestamp
-      params.action = "update";
-      params.args["data"] = { deletedAt: new Date() };
+      params.action = 'update';
+      params.args['data'] = { deletedAt: new Date() };
     }
-    if (params.action === "deleteMany") {
+    if (params.action === 'deleteMany') {
       // Change deleteMany to updateMany with deletedAt timestamp
-      params.action = "updateMany";
+      params.action = 'updateMany';
       if (params.args.data != undefined) {
-        params.args.data["deletedAt"] = new Date();
+        params.args.data['deletedAt'] = new Date();
       } else {
-        params.args["data"] = { deletedAt: new Date() };
+        params.args['data'] = { deletedAt: new Date() };
       }
     }
   }
@@ -52,6 +52,6 @@ export const prisma =
 });
 
 // In development, ensure the PrismaClient instance is not recreated on hot reloads.
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   globalThis.prisma = prisma;
 }

@@ -1,9 +1,9 @@
-import * as crypto from "crypto";
+import * as crypto from 'crypto';
 
-const digits = "0123456789";
-const lowerCaseAlphabets = "abcdefghijklmnopqrstuvwxyz";
+const digits = '0123456789';
+const lowerCaseAlphabets = 'abcdefghijklmnopqrstuvwxyz';
 const upperCaseAlphabets = lowerCaseAlphabets.toUpperCase();
-const specialChars = "#!&@";
+const specialChars = '#!&@';
 
 export interface GenerateOptions {
   digits?: boolean; // Include digits
@@ -30,25 +30,25 @@ export function otpGenerator(
   } = options;
 
   const allowedChars =
-    (includeDigits ? digits : "") +
-    (includeLowerCase ? lowerCaseAlphabets : "") +
-    (includeUpperCase ? upperCaseAlphabets : "") +
-    (includeSpecialChars ? specialChars : "");
+    (includeDigits ? digits : '') +
+    (includeLowerCase ? lowerCaseAlphabets : '') +
+    (includeUpperCase ? upperCaseAlphabets : '') +
+    (includeSpecialChars ? specialChars : '');
 
   if (!allowedChars) {
     throw new Error(
-      "No characters available to generate OTP. Please adjust the options."
+      'No characters available to generate OTP. Please adjust the options.'
     );
   }
 
-  let password = "";
+  let password = '';
   while (password.length < length) {
     const charIndex = crypto.randomInt(0, allowedChars.length);
     // Prevent OTP from starting with '0' if digits are included
     if (
       password.length === 0 &&
       includeDigits &&
-      allowedChars[charIndex] === "0"
+      allowedChars[charIndex] === '0'
     ) {
       continue;
     }

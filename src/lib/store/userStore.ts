@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 interface User {
   id: string;
@@ -76,8 +76,8 @@ export const useUserStore = create<UserState>()(
         set({ adminUser: user, adminToken: token });
         // Also update localStorage for backward compatibility
         if (user && token) {
-          localStorage.setItem("adminUser", JSON.stringify(user));
-          localStorage.setItem("adminToken", token);
+          localStorage.setItem('adminUser', JSON.stringify(user));
+          localStorage.setItem('adminToken', token);
         }
       },
 
@@ -86,8 +86,8 @@ export const useUserStore = create<UserState>()(
         set({ storeUser: user, storeToken: token });
         // Also update localStorage for backward compatibility
         if (user && token) {
-          localStorage.setItem("storeUser", JSON.stringify(user));
-          localStorage.setItem("storeToken", token);
+          localStorage.setItem('storeUser', JSON.stringify(user));
+          localStorage.setItem('storeToken', token);
         }
       },
 
@@ -96,43 +96,43 @@ export const useUserStore = create<UserState>()(
         set({ user, token });
         // Also update localStorage for backward compatibility
         if (user && token) {
-          localStorage.setItem("user", JSON.stringify(user));
-          localStorage.setItem("token", token);
+          localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem('token', token);
         }
       },
 
       // Logout admin
       logoutAdmin: () => {
         set({ adminUser: null, adminToken: null });
-        localStorage.removeItem("adminUser");
-        localStorage.removeItem("adminToken");
+        localStorage.removeItem('adminUser');
+        localStorage.removeItem('adminToken');
       },
 
       // Logout store admin
       logoutStore: () => {
         set({ storeUser: null, storeToken: null });
-        localStorage.removeItem("storeUser");
-        localStorage.removeItem("storeToken");
+        localStorage.removeItem('storeUser');
+        localStorage.removeItem('storeToken');
       },
 
       // Logout regular user
       logoutUser: () => {
         set({ user: null, token: null });
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
       },
 
       // Get current user based on route
       getCurrentUser: () => {
-        if (typeof window === "undefined") {
+        if (typeof window === 'undefined') {
           return { user: null, token: null };
         }
 
         const pathname = window.location.pathname;
 
-        if (pathname.startsWith("/admin")) {
+        if (pathname.startsWith('/admin')) {
           return { user: get().adminUser, token: get().adminToken };
-        } else if (pathname.startsWith("/store")) {
+        } else if (pathname.startsWith('/store')) {
           return { user: get().storeUser, token: get().storeToken };
         } else {
           return { user: get().user, token: get().token };
@@ -140,14 +140,14 @@ export const useUserStore = create<UserState>()(
       },
 
       // Set hydration state
-      setHasHydrated: (hasHydrated) => {
+      setHasHydrated: hasHydrated => {
         set({ _hasHydrated: hasHydrated });
       },
     }),
     {
-      name: "user-storage", // unique name for localStorage key
+      name: 'user-storage', // unique name for localStorage key
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
+      partialize: state => ({
         adminUser: state.adminUser,
         adminToken: state.adminToken,
         storeUser: state.storeUser,
@@ -157,7 +157,7 @@ export const useUserStore = create<UserState>()(
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) {
-          console.error("Error rehydrating storage:", error);
+          console.error('Error rehydrating storage:', error);
         } else {
           // Set hydration state to true when rehydration is complete
           state?.setHasHydrated(true);

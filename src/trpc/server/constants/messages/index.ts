@@ -1,4 +1,4 @@
-import { authMessage } from "./auth";
+import { authMessage } from './auth';
 
 export const makeMessage = <S, E, T extends string>(
   section: T,
@@ -19,9 +19,9 @@ const messages = {
 type MessageParts = keyof typeof messages;
 type MessageSectionPart = keyof (typeof messages)[MessageParts];
 type MessageSuccessMessages =
-  keyof (typeof messages)[MessageParts][MessageSectionPart]["success"];
+  keyof (typeof messages)[MessageParts][MessageSectionPart]['success'];
 type MessageErrorMessages =
-  keyof (typeof messages)[MessageParts][MessageSectionPart]["error"];
+  keyof (typeof messages)[MessageParts][MessageSectionPart]['error'];
 
 export const getErrorMessage = (
   part: MessageParts,

@@ -1,4 +1,4 @@
-import * as crypto from "crypto";
+import * as crypto from 'crypto';
 
 /**
  * Generates a secure random token for OTP verification
@@ -6,7 +6,7 @@ import * as crypto from "crypto";
  * @returns A secure random token
  */
 export function generateSecureToken(length: number = 32): string {
-  return crypto.randomBytes(length).toString("hex");
+  return crypto.randomBytes(length).toString('hex');
 }
 
 /**
@@ -15,5 +15,5 @@ export function generateSecureToken(length: number = 32): string {
  * @returns A shorter secure token
  */
 export function generateShortToken(length: number = 16): string {
-  return crypto.randomBytes(length).toString("hex");
+  return crypto.randomBytes(length).toString('hex');
 }

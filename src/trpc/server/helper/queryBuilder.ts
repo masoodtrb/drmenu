@@ -1,29 +1,30 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/trpc/server/db";
+import { Prisma } from '@prisma/client';
+
+import { prisma } from '@/trpc/server/db';
 
 export type FilterOperation =
-  | "eq" // equals
-  | "ne" // not equals
-  | "gt" // greater than
-  | "gte" // greater than or equal
-  | "lt" // less than
-  | "lte" // less than or equal
-  | "in" // in array
-  | "notIn" // not in array
-  | "contains" // contains (string)
-  | "startsWith" // starts with
-  | "endsWith" // ends with
-  | "isNull" // is null
-  | "isNotNull" // is not null
-  | "between" // between two values
-  | "notContains" // does not contain
-  | "regex" // regex pattern
-  | "search" // full-text search
-  | "has" // has relation
-  | "hasNot" // does not have relation
-  | "some" // some relation matches
-  | "every" // every relation matches
-  | "none"; // no relation matches
+  | 'eq' // equals
+  | 'ne' // not equals
+  | 'gt' // greater than
+  | 'gte' // greater than or equal
+  | 'lt' // less than
+  | 'lte' // less than or equal
+  | 'in' // in array
+  | 'notIn' // not in array
+  | 'contains' // contains (string)
+  | 'startsWith' // starts with
+  | 'endsWith' // ends with
+  | 'isNull' // is null
+  | 'isNotNull' // is not null
+  | 'between' // between two values
+  | 'notContains' // does not contain
+  | 'regex' // regex pattern
+  | 'search' // full-text search
+  | 'has' // has relation
+  | 'hasNot' // does not have relation
+  | 'some' // some relation matches
+  | 'every' // every relation matches
+  | 'none'; // no relation matches
 
 export interface SearchFilter {
   field: string;
@@ -39,7 +40,7 @@ export interface QueryBuilderOptions {
   search?: string | SearchFilter[]; // Enhanced to support both string and array of filters
   searchFields?: string[];
   filters?: Record<string, any>;
-  orderBy?: Record<string, "asc" | "desc">;
+  orderBy?: Record<string, 'asc' | 'desc'>;
   include?: Record<string, any>;
   select?: Record<string, any>;
 }
@@ -75,7 +76,7 @@ export class QueryBuilder {
 
     // Handle nested relations
     if (relation) {
-      const relationPath = relation.split(".");
+      const relationPath = relation.split('.');
       const currentCondition: any = {};
       let current = currentCondition;
 
@@ -104,57 +105,57 @@ export class QueryBuilder {
     operation: FilterOperation,
     caseSensitive: boolean
   ): any {
-    const mode = caseSensitive ? undefined : "insensitive";
+    const mode = caseSensitive ? undefined : 'insensitive';
 
     switch (operation) {
-      case "eq":
+      case 'eq':
         return { equals: value };
-      case "ne":
+      case 'ne':
         return { not: value };
-      case "gt":
+      case 'gt':
         return { gt: value };
-      case "gte":
+      case 'gte':
         return { gte: value };
-      case "lt":
+      case 'lt':
         return { lt: value };
-      case "lte":
+      case 'lte':
         return { lte: value };
-      case "in":
+      case 'in':
         return { in: Array.isArray(value) ? value : [value] };
-      case "notIn":
+      case 'notIn':
         return { notIn: Array.isArray(value) ? value : [value] };
-      case "contains":
+      case 'contains':
         return { contains: value, mode };
-      case "notContains":
+      case 'notContains':
         return { not: { contains: value, mode } };
-      case "startsWith":
+      case 'startsWith':
         return { startsWith: value, mode };
-      case "endsWith":
+      case 'endsWith':
         return { endsWith: value, mode };
-      case "isNull":
+      case 'isNull':
         return null;
-      case "isNotNull":
+      case 'isNotNull':
         return { not: null };
-      case "between":
+      case 'between':
         if (Array.isArray(value) && value.length === 2) {
           return { gte: value[0], lte: value[1] };
         }
         throw new Error(
-          "Between operation requires array with exactly 2 values"
+          'Between operation requires array with exactly 2 values'
         );
-      case "regex":
+      case 'regex':
         return { search: value, mode };
-      case "search":
+      case 'search':
         return { search: value, mode };
-      case "has":
+      case 'has':
         return { some: value };
-      case "hasNot":
+      case 'hasNot':
         return { none: value };
-      case "some":
+      case 'some':
         return { some: value };
-      case "every":
+      case 'every':
         return { every: value };
-      case "none":
+      case 'none':
         return { none: value };
       default:
         throw new Error(`Unsupported operation: ${operation}`);
@@ -176,7 +177,7 @@ export class QueryBuilder {
     if (this.options.search) {
       if (Array.isArray(this.options.search)) {
         // Advanced search with array of filters
-        const searchConditions = this.options.search.map((filter) =>
+        const searchConditions = this.options.search.map(filter =>
           this.buildFilterCondition(filter)
         );
 
@@ -185,14 +186,14 @@ export class QueryBuilder {
           Object.assign(whereClause, ...searchConditions);
         }
       } else if (
-        typeof this.options.search === "string" &&
+        typeof this.options.search === 'string' &&
         this.options.searchFields
       ) {
         // Legacy string search
-        const searchConditions = this.options.searchFields.map((field) => ({
+        const searchConditions = this.options.searchFields.map(field => ({
           [field]: {
             contains: this.options.search as string,
-            mode: "insensitive" as const,
+            mode: 'insensitive' as const,
           },
         }));
 
@@ -213,8 +214,8 @@ export class QueryBuilder {
   /**
    * Build the orderBy clause
    */
-  private buildOrderByClause(): Record<string, "asc" | "desc"> {
-    return this.options.orderBy || { createdAt: "desc" };
+  private buildOrderByClause(): Record<string, 'asc' | 'desc'> {
+    return this.options.orderBy || { createdAt: 'desc' };
   }
 
   /**
@@ -317,7 +318,7 @@ export class QueryBuilder {
   /**
    * Set ordering
    */
-  orderBy(orderBy: Record<string, "asc" | "desc">): this {
+  orderBy(orderBy: Record<string, 'asc' | 'desc'>): this {
     this.options.orderBy = orderBy;
     return this;
   }
@@ -361,7 +362,7 @@ export class StoreQueryBuilder extends QueryBuilder {
    * Search in store title and description
    */
   searchStores(searchTerm: string): this {
-    return this.searchText(searchTerm, ["title"]);
+    return this.searchText(searchTerm, ['title']);
   }
 
   /**
@@ -397,7 +398,7 @@ export class StoreQueryBuilder extends QueryBuilder {
    */
   byCreatedDateRange(startDate: Date, endDate: Date): this {
     return this.search([
-      { field: "createdAt", value: [startDate, endDate], operation: "between" },
+      { field: 'createdAt', value: [startDate, endDate], operation: 'between' },
     ]);
   }
 
@@ -406,7 +407,7 @@ export class StoreQueryBuilder extends QueryBuilder {
    */
   byStoreTypeAdvanced(storeTypeIds: string[]): this {
     return this.search([
-      { field: "storeTypeId", value: storeTypeIds, operation: "in" },
+      { field: 'storeTypeId', value: storeTypeIds, operation: 'in' },
     ]);
   }
 
@@ -444,7 +445,7 @@ export class UserQueryBuilder extends QueryBuilder {
    * Search in username and email
    */
   searchUsers(searchTerm: string): this {
-    return this.searchText(searchTerm, ["username"]);
+    return this.searchText(searchTerm, ['username']);
   }
 
   /**
@@ -472,7 +473,7 @@ export class UserQueryBuilder extends QueryBuilder {
    * Filter by creation date
    */
   byCreatedAfter(date: Date): this {
-    return this.search([{ field: "createdAt", value: date, operation: "gte" }]);
+    return this.search([{ field: 'createdAt', value: date, operation: 'gte' }]);
   }
 
   /**
@@ -480,7 +481,7 @@ export class UserQueryBuilder extends QueryBuilder {
    */
   byUsernamePattern(pattern: string): this {
     return this.search([
-      { field: "username", value: pattern, operation: "contains" },
+      { field: 'username', value: pattern, operation: 'contains' },
     ]);
   }
 
@@ -503,7 +504,7 @@ export class FileQueryBuilder extends QueryBuilder {
    * Search in file name
    */
   searchFiles(searchTerm: string): this {
-    return this.searchText(searchTerm, ["name"]);
+    return this.searchText(searchTerm, ['name']);
   }
 
   /**
@@ -539,7 +540,7 @@ export class FileQueryBuilder extends QueryBuilder {
    */
   byFileSizeRange(minSize: number, maxSize: number): this {
     return this.search([
-      { field: "size", value: [minSize, maxSize], operation: "between" },
+      { field: 'size', value: [minSize, maxSize], operation: 'between' },
     ]);
   }
 
@@ -548,7 +549,7 @@ export class FileQueryBuilder extends QueryBuilder {
    */
   byFileType(mimeTypes: string[]): this {
     return this.search([
-      { field: "mimeType", value: mimeTypes, operation: "in" },
+      { field: 'mimeType', value: mimeTypes, operation: 'in' },
     ]);
   }
 

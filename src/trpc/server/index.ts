@@ -6,15 +6,19 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC, TRPCError } from "@trpc/server";
-import { cookies, headers } from "next/headers";
-import { cache } from "react";
-import superjson from "superjson";
-import { ZodError } from "zod";
-import { makeQueryClient } from "../client/queryClient";
-import { prisma as db } from "./db";
-import { checkUser } from "./midddleware/checkUser";
-import { Role } from "@prisma/client";
+import { Role } from '@prisma/client';
+import superjson from 'superjson';
+import { ZodError } from 'zod';
+
+import { cache } from 'react';
+
+import { cookies, headers } from 'next/headers';
+
+import { initTRPC, TRPCError } from '@trpc/server';
+
+import { makeQueryClient } from '../client/queryClient';
+import { prisma as db } from './db';
+import { checkUser } from './midddleware/checkUser';
 
 // import { db } from "~/server/db";
 // import { getUserAsAdmin } from "../supabase/supabaseClient";
@@ -32,7 +36,7 @@ export const createTRPCContext = async (opts: {
   res?: any;
 }) => {
   const headers = opts.headers;
-  const authToken = headers.get("authorization")?.split(" ")[1];
+  const authToken = headers.get('authorization')?.split(' ')[1];
 
   const user = authToken ? await checkUser(authToken) : null;
   return {
@@ -88,7 +92,7 @@ export const publicProcedure = t.procedure;
 
 const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
   if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
   }
 
   return next({
@@ -104,7 +108,7 @@ export const privateProcedure = t.procedure.use(enforceUserIsAuthed);
 export function requireRoles(roles: Role[]) {
   return privateProcedure.use(async ({ ctx, next }) => {
     if (!ctx.user || !roles.includes(ctx.user.role)) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Insufficient role" });
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'Insufficient role' });
     }
     return next({ ctx });
   });
@@ -117,14 +121,14 @@ export function requireRoles(roles: Role[]) {
 export const createContext = cache(async () => {
   const heads = new Headers(await headers());
   const ckies = await cookies();
-  const accessToken = ckies.get("access-token")?.value;
+  const accessToken = ckies.get('access-token')?.value;
 
   if (accessToken) {
-    heads.set("authorization", accessToken);
+    heads.set('authorization', accessToken);
   }
 
-  heads.set("x-trpc-source", "rsc");
-  heads.set("cookie", ckies.toString());
+  heads.set('x-trpc-source', 'rsc');
+  heads.set('cookie', ckies.toString());
 
   return createTRPCContext({
     headers: heads,

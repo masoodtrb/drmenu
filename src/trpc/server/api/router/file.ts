@@ -1,17 +1,19 @@
+import { Role } from '@prisma/client';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
+
 import {
   createTRPCRouter,
   privateProcedure,
   publicProcedure,
   requireRoles,
-} from "@/trpc/server";
-import { TRPCError } from "@trpc/server";
-import { Role } from "@prisma/client";
-import { z } from "zod";
-import { promises as fs } from "fs";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
+} from '@/trpc/server';
 
-const UPLOAD_DIR = path.join(process.cwd(), "uploads");
+import { TRPCError } from '@trpc/server';
+
+const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
 export const fileRouter = createTRPCRouter({
   // Upload a file
@@ -28,9 +30,9 @@ export const fileRouter = createTRPCRouter({
       const { name, content, mimeType, published = false } = input;
       const user = ctx.user;
       // Decode base64
-      const buffer = Buffer.from(content, "base64");
+      const buffer = Buffer.from(content, 'base64');
       // Generate unique filename
-      const ext = path.extname(name) || "";
+      const ext = path.extname(name) || '';
       const fileId = uuidv4();
       const fileName = `${fileId}${ext}`;
       const filePath = path.join(UPLOAD_DIR, fileName);
@@ -44,7 +46,7 @@ export const fileRouter = createTRPCRouter({
           size: buffer.length,
           mimeType,
           published,
-          storageType: "local",
+          storageType: 'local',
           ownerId: user.id,
           publishedAt: published ? new Date() : null,
         },
@@ -71,23 +73,23 @@ export const fileRouter = createTRPCRouter({
         where: { id: input.fileId },
       });
       if (!file || file.deletedAt) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "File not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'File not found' });
       }
       // Only owner or admin can delete
-      if (file.ownerId !== user.id && user.role !== "ADMIN") {
+      if (file.ownerId !== user.id && user.role !== 'ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Not allowed to delete this file",
+          code: 'FORBIDDEN',
+          message: 'Not allowed to delete this file',
         });
       }
       // Remove from disk (if local)
-      if (file.storageType === "local") {
-        const filePath = path.join(process.cwd(), "public", file.path);
+      if (file.storageType === 'local') {
+        const filePath = path.join(process.cwd(), 'public', file.path);
         try {
           await fs.unlink(filePath);
         } catch (err: any) {
           // If file is already gone, ignore
-          if (err.code !== "ENOENT") throw err;
+          if (err.code !== 'ENOENT') throw err;
         }
       }
       // Soft-delete in DB
@@ -114,23 +116,23 @@ export const fileRouter = createTRPCRouter({
         where: { id: input.fileId },
       });
       if (!file || file.deletedAt) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "File not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'File not found' });
       }
       // Only allow if published
       if (!file.published) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Not allowed to access this file",
+          code: 'FORBIDDEN',
+          message: 'Not allowed to access this file',
         });
       }
       // Read file from disk
-      if (file.storageType === "local") {
+      if (file.storageType === 'local') {
         const buffer = await fs.readFile(file.path);
         return buffer;
       }
       throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "Storage type not supported",
+        code: 'NOT_IMPLEMENTED',
+        message: 'Storage type not supported',
       });
     }),
 

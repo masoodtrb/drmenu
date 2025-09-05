@@ -1,4 +1,4 @@
-import * as z from "zod";
+import * as z from 'zod';
 
 export const emailValidation = z.email();
 
@@ -7,7 +7,7 @@ export const isEmail = (mail: string) => {
   return parsed.success;
 };
 
-const iranMobileREGX = new RegExp("^(\\+98|0)?9\\d{9}$");
+const iranMobileREGX = new RegExp('^(\\+98|0)?9\\d{9}$');
 
 export const mobileValidation = z.string().regex(iranMobileREGX);
 

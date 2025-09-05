@@ -1,5 +1,6 @@
-import { redisConnection, redisSubscriber } from "@/database/redis";
-import { Queue, QueueOptions, JobsOptions, QueueEvents } from "bullmq";
+import { JobsOptions, Queue, QueueEvents, QueueOptions } from 'bullmq';
+
+import { redisConnection, redisSubscriber } from '@/database/redis';
 
 export class GlobalQueue<T> {
   public queue: Queue<T>;
@@ -9,14 +10,17 @@ export class GlobalQueue<T> {
     defaultJobOptions: {
       attempts: 3,
       backoff: {
-        type: "exponential",
+        type: 'exponential',
         delay: 1000,
       },
       removeOnComplete: { count: 100 },
       removeOnFail: { count: 1000 },
     },
   };
-  constructor(public queueName: string, options?: QueueOptions) {
+  constructor(
+    public queueName: string,
+    options?: QueueOptions
+  ) {
     this.queue = new Queue<T>(queueName, {
       ...this.defaultQueueOptions,
       ...options,

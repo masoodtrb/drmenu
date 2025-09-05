@@ -1,6 +1,7 @@
-import { z } from "zod";
-import { Prisma } from "@prisma/client";
-import { SearchFilter, FilterOperation } from "./queryBuilder";
+import { Prisma } from '@prisma/client';
+import { z } from 'zod';
+
+import { FilterOperation, SearchFilter } from './queryBuilder';
 
 /**
  * Field configuration for model generation
@@ -8,13 +9,13 @@ import { SearchFilter, FilterOperation } from "./queryBuilder";
 export interface ModelField {
   name: string;
   type:
-    | "string"
-    | "number"
-    | "boolean"
-    | "date"
-    | "array"
-    | "object"
-    | "relation";
+    | 'string'
+    | 'number'
+    | 'boolean'
+    | 'date'
+    | 'array'
+    | 'object'
+    | 'relation';
   required?: boolean;
   searchable?: boolean;
   filterable?: boolean;
@@ -29,7 +30,7 @@ export interface ModelField {
   };
   relation?: {
     model: string;
-    type: "one" | "many";
+    type: 'one' | 'many';
     field?: string;
   };
   defaultValue?: any;
@@ -46,7 +47,7 @@ export interface ModelConfig {
   searchFields?: string[];
   defaultFilters?: Record<string, any>;
   defaultIncludes?: Record<string, any>;
-  defaultOrderBy?: Record<string, "asc" | "desc">;
+  defaultOrderBy?: Record<string, 'asc' | 'desc'>;
   softDelete?: boolean; // Whether the model supports soft delete
   audit?: boolean; // Whether the model supports audit logging
   permissions?: {
@@ -106,11 +107,11 @@ export class ModelBuilder {
     // Create base field schema
     const baseFieldSchema: Record<string, z.ZodSchema> = {};
 
-    fields.forEach((field) => {
+    fields.forEach(field => {
       let schema: z.ZodSchema;
 
       switch (field.type) {
-        case "string":
+        case 'string':
           schema = z.string();
           if (field.validation?.minLength)
             schema = schema.min(field.validation.minLength);
@@ -122,7 +123,7 @@ export class ModelBuilder {
             schema = z.enum(field.validation.enum as [string, ...string[]]);
           break;
 
-        case "number":
+        case 'number':
           schema = z.number();
           if (field.validation?.min !== undefined)
             schema = schema.min(field.validation.min);
@@ -130,23 +131,23 @@ export class ModelBuilder {
             schema = schema.max(field.validation.max);
           break;
 
-        case "boolean":
+        case 'boolean':
           schema = z.boolean();
           break;
 
-        case "date":
+        case 'date':
           schema = z.date();
           break;
 
-        case "array":
+        case 'array':
           schema = z.array(z.any());
           break;
 
-        case "object":
+        case 'object':
           schema = z.record(z.any());
           break;
 
-        case "relation":
+        case 'relation':
           schema = z.string();
           break;
 
@@ -166,29 +167,29 @@ export class ModelBuilder {
 
     // Update schema (all fields optional)
     const updateFieldSchema: Record<string, z.ZodSchema> = {};
-    fields.forEach((field) => {
+    fields.forEach(field => {
       let schema: z.ZodSchema;
 
       switch (field.type) {
-        case "string":
+        case 'string':
           schema = z.string().optional();
           break;
-        case "number":
+        case 'number':
           schema = z.number().optional();
           break;
-        case "boolean":
+        case 'boolean':
           schema = z.boolean().optional();
           break;
-        case "date":
+        case 'date':
           schema = z.date().optional();
           break;
-        case "array":
+        case 'array':
           schema = z.array(z.any()).optional();
           break;
-        case "object":
+        case 'object':
           schema = z.record(z.any()).optional();
           break;
-        case "relation":
+        case 'relation':
           schema = z.string().optional();
           break;
         default:
@@ -209,7 +210,7 @@ export class ModelBuilder {
       offset: z.number().min(0).optional().default(0),
       search: z.string().optional(),
       advancedSearch: z.array(this.generateSearchFilterSchema()).optional(),
-      orderBy: z.record(z.enum(["asc", "desc"])).optional(),
+      orderBy: z.record(z.enum(['asc', 'desc'])).optional(),
       ...this.generateFilterFields(),
     });
 
@@ -244,28 +245,28 @@ export class ModelBuilder {
       field: z.string(),
       value: z.any(),
       operation: z.enum([
-        "eq",
-        "ne",
-        "gt",
-        "gte",
-        "lt",
-        "lte",
-        "in",
-        "notIn",
-        "contains",
-        "startsWith",
-        "endsWith",
-        "isNull",
-        "isNotNull",
-        "between",
-        "notContains",
-        "regex",
-        "search",
-        "has",
-        "hasNot",
-        "some",
-        "every",
-        "none",
+        'eq',
+        'ne',
+        'gt',
+        'gte',
+        'lt',
+        'lte',
+        'in',
+        'notIn',
+        'contains',
+        'startsWith',
+        'endsWith',
+        'isNull',
+        'isNotNull',
+        'between',
+        'notContains',
+        'regex',
+        'search',
+        'has',
+        'hasNot',
+        'some',
+        'every',
+        'none',
       ]),
       relation: z.string().optional(),
       caseSensitive: z.boolean().optional(),
@@ -278,25 +279,25 @@ export class ModelBuilder {
   private generateFilterFields() {
     const filterFields: Record<string, z.ZodSchema> = {};
 
-    this.config.fields.forEach((field) => {
+    this.config.fields.forEach(field => {
       if (field.filterable) {
         switch (field.type) {
-          case "boolean":
+          case 'boolean':
             filterFields[field.name] = z.boolean().optional();
             break;
-          case "string":
+          case 'string':
             filterFields[field.name] = z.string().optional();
             break;
-          case "number":
+          case 'number':
             filterFields[field.name] = z.number().optional();
             break;
-          case "date":
+          case 'date':
             filterFields[field.name] = z.date().optional();
             break;
-          case "array":
+          case 'array':
             filterFields[field.name] = z.array(z.string()).optional();
             break;
-          case "relation":
+          case 'relation':
             filterFields[field.name] = z.string().optional();
             break;
         }
@@ -351,31 +352,31 @@ export class ${className} extends QueryBuilder {
   private generateFilterMethods(): string {
     const methods: string[] = [];
 
-    this.config.fields.forEach((field) => {
+    this.config.fields.forEach(field => {
       if (field.filterable) {
         const methodName = `by${this.capitalizeFirst(field.name)}`;
         const filterName = field.name;
 
         switch (field.type) {
-          case "boolean":
+          case 'boolean':
             methods.push(`
   ${methodName}(value: boolean): this {
     return this.filter({ ${filterName}: value });
   }`);
             break;
-          case "string":
+          case 'string':
             methods.push(`
   ${methodName}(value: string): this {
     return this.filter({ ${filterName}: value });
   }`);
             break;
-          case "number":
+          case 'number':
             methods.push(`
   ${methodName}(value: number): this {
     return this.filter({ ${filterName}: value });
   }`);
             break;
-          case "date":
+          case 'date':
             methods.push(`
   ${methodName}Range(startDate: Date, endDate: Date): this {
     return this.search([
@@ -383,7 +384,7 @@ export class ${className} extends QueryBuilder {
     ]);
   }`);
             break;
-          case "array":
+          case 'array':
             methods.push(`
   ${methodName}Advanced(values: string[]): this {
     return this.search([
@@ -391,7 +392,7 @@ export class ${className} extends QueryBuilder {
     ]);
   }`);
             break;
-          case "relation":
+          case 'relation':
             methods.push(`
   by${this.capitalizeFirst(
     field.relation?.model || field.name
@@ -403,7 +404,7 @@ export class ${className} extends QueryBuilder {
       }
     });
 
-    return methods.join("\n");
+    return methods.join('\n');
   }
 
   /**
@@ -425,7 +426,7 @@ import { ${this.config.name}Schemas } from "./${this.config.name}Validation";
 
 export const ${routerName} = createTRPCRouter({
   // Create ${this.config.name}
-  create: ${this.generatePermissionCheck("create")}
+  create: ${this.generatePermissionCheck('create')}
     .input(${this.config.name}Schemas.create)
     .mutation(async ({ ctx, input }) => {
       try {
@@ -443,13 +444,13 @@ export const ${routerName} = createTRPCRouter({
     }),
 
   // Get ${this.config.name} by ID
-  getById: ${this.generatePermissionCheck("read")}
+  getById: ${this.generatePermissionCheck('read')}
     .input(${this.config.name}Schemas.getById)
     .query(async ({ ctx, input }) => {
       try {
         const { id } = input;
         const ${this.config.name} = await ctx.db.${this.config.name}.findFirst({
-          where: { id, ${this.config.softDelete ? "deletedAt: null," : ""} },
+          where: { id, ${this.config.softDelete ? 'deletedAt: null,' : ''} },
           include: ${JSON.stringify(this.config.defaultIncludes || {})},
         });
 
@@ -474,7 +475,7 @@ export const ${routerName} = createTRPCRouter({
     }),
 
   // List ${this.config.name}s
-  list: ${this.generatePermissionCheck("list")}
+  list: ${this.generatePermissionCheck('list')}
     .input(${this.config.name}Schemas.list)
     .query(async ({ ctx, input }) => {
       try {
@@ -517,7 +518,7 @@ export const ${routerName} = createTRPCRouter({
     }),
 
   // Update ${this.config.name}
-  update: ${this.generatePermissionCheck("update")}
+  update: ${this.generatePermissionCheck('update')}
     .input(${this.config.name}Schemas.update)
     .mutation(async ({ ctx, input }) => {
       try {
@@ -526,7 +527,7 @@ export const ${routerName} = createTRPCRouter({
         const existing${this.capitalizeFirst(
           this.config.name
         )} = await ctx.db.${this.config.name}.findFirst({
-          where: { id, ${this.config.softDelete ? "deletedAt: null," : ""} },
+          where: { id, ${this.config.softDelete ? 'deletedAt: null,' : ''} },
         });
 
         if (!existing${this.capitalizeFirst(this.config.name)}) {
@@ -559,14 +560,14 @@ export const ${routerName} = createTRPCRouter({
     }),
 
   // Delete ${this.config.name}
-  delete: ${this.generatePermissionCheck("delete")}
+  delete: ${this.generatePermissionCheck('delete')}
     .input(${this.config.name}Schemas.delete)
     .mutation(async ({ ctx, input }) => {
       try {
         const { id } = input;
 
         const ${this.config.name} = await ctx.db.${this.config.name}.findFirst({
-          where: { id, ${this.config.softDelete ? "deletedAt: null," : ""} },
+          where: { id, ${this.config.softDelete ? 'deletedAt: null,' : ''} },
         });
 
         if (!${this.config.name}) {
@@ -618,21 +619,21 @@ export const ${routerName} = createTRPCRouter({
       ];
     if (roles && roles.length > 0) {
       return `requireRoles([${roles
-        .map((role) => `Role.${role.toUpperCase()}`)
-        .join(", ")}])`;
+        .map(role => `Role.${role.toUpperCase()}`)
+        .join(', ')}])`;
     }
-    return "privateProcedure";
+    return 'privateProcedure';
   }
 
   /**
    * Generate create logic
    */
   private generateCreateLogic(): string {
-    const requiredFields = this.config.fields.filter((f) => f.required);
-    const fieldNames = requiredFields.map((f) => f.name);
+    const requiredFields = this.config.fields.filter(f => f.required);
+    const fieldNames = requiredFields.map(f => f.name);
 
     return `
-        const { ${fieldNames.join(", ")} } = input;
+        const { ${fieldNames.join(', ')} } = input;
 
         const ${this.config.name} = await ctx.db.${this.config.name}.create({
           data: input,
@@ -649,10 +650,10 @@ export const ${routerName} = createTRPCRouter({
    * Generate filter logic
    */
   private generateFilterLogic(): string {
-    const filterableFields = this.config.fields.filter((f) => f.filterable);
+    const filterableFields = this.config.fields.filter(f => f.filterable);
     const filterLogic: string[] = [];
 
-    filterableFields.forEach((field) => {
+    filterableFields.forEach(field => {
       const methodName = `by${this.capitalizeFirst(field.name)}`;
       filterLogic.push(`
         if (filters.${field.name} !== undefined) {
@@ -660,7 +661,7 @@ export const ${routerName} = createTRPCRouter({
         }`);
     });
 
-    return filterLogic.join("\n");
+    return filterLogic.join('\n');
   }
 
   /**
@@ -713,146 +714,146 @@ export const ${routerName} = createTRPCRouter({
  */
 export const ModelConfigs = {
   store: {
-    name: "store",
-    tableName: "store",
+    name: 'store',
+    tableName: 'store',
     fields: [
       {
-        name: "title",
-        type: "string",
+        name: 'title',
+        type: 'string',
         required: true,
         searchable: true,
         filterable: true,
         validation: { minLength: 1, maxLength: 255 },
       },
       {
-        name: "active",
-        type: "boolean",
+        name: 'active',
+        type: 'boolean',
         required: false,
         filterable: true,
         defaultValue: false,
       },
       {
-        name: "userId",
-        type: "relation",
+        name: 'userId',
+        type: 'relation',
         required: true,
         filterable: true,
-        relation: { model: "user", type: "one" },
+        relation: { model: 'user', type: 'one' },
       },
       {
-        name: "storeTypeId",
-        type: "relation",
+        name: 'storeTypeId',
+        type: 'relation',
         required: true,
         filterable: true,
-        relation: { model: "storeType", type: "one" },
+        relation: { model: 'storeType', type: 'one' },
       },
     ],
-    searchFields: ["title"],
+    searchFields: ['title'],
     defaultFilters: { deletedAt: null },
     defaultIncludes: {
       storeType: true,
       user: { select: { id: true, username: true } },
       _count: { select: { StoreBranch: { where: { deletedAt: null } } } },
     },
-    defaultOrderBy: { createdAt: "desc" },
+    defaultOrderBy: { createdAt: 'desc' },
     softDelete: true,
     permissions: {
-      create: ["ADMIN"],
-      read: ["ADMIN", "STORE_ADMIN"],
-      update: ["ADMIN"],
-      delete: ["ADMIN"],
-      list: ["ADMIN"],
+      create: ['ADMIN'],
+      read: ['ADMIN', 'STORE_ADMIN'],
+      update: ['ADMIN'],
+      delete: ['ADMIN'],
+      list: ['ADMIN'],
     },
   },
 
   user: {
-    name: "user",
-    tableName: "user",
+    name: 'user',
+    tableName: 'user',
     fields: [
       {
-        name: "username",
-        type: "string",
+        name: 'username',
+        type: 'string',
         required: true,
         searchable: true,
         filterable: true,
         validation: { minLength: 3, maxLength: 50 },
       },
-      { name: "password", type: "string", required: true },
+      { name: 'password', type: 'string', required: true },
       {
-        name: "role",
-        type: "string",
+        name: 'role',
+        type: 'string',
         required: true,
         filterable: true,
-        validation: { enum: ["ADMIN", "STORE_ADMIN"] },
+        validation: { enum: ['ADMIN', 'STORE_ADMIN'] },
       },
       {
-        name: "active",
-        type: "boolean",
+        name: 'active',
+        type: 'boolean',
         required: false,
         filterable: true,
         defaultValue: false,
       },
     ],
-    searchFields: ["username"],
+    searchFields: ['username'],
     defaultFilters: { deletedAt: null },
     defaultIncludes: { Profile: true },
-    defaultOrderBy: { createdAt: "desc" },
+    defaultOrderBy: { createdAt: 'desc' },
     softDelete: true,
     permissions: {
-      create: ["ADMIN"],
-      read: ["ADMIN"],
-      update: ["ADMIN"],
-      delete: ["ADMIN"],
-      list: ["ADMIN"],
+      create: ['ADMIN'],
+      read: ['ADMIN'],
+      update: ['ADMIN'],
+      delete: ['ADMIN'],
+      list: ['ADMIN'],
     },
   },
 
   file: {
-    name: "file",
-    tableName: "file",
+    name: 'file',
+    tableName: 'file',
     fields: [
       {
-        name: "name",
-        type: "string",
+        name: 'name',
+        type: 'string',
         required: true,
         searchable: true,
         filterable: true,
       },
-      { name: "path", type: "string", required: true },
-      { name: "size", type: "number", required: true, filterable: true },
-      { name: "mimeType", type: "string", required: true, filterable: true },
+      { name: 'path', type: 'string', required: true },
+      { name: 'size', type: 'number', required: true, filterable: true },
+      { name: 'mimeType', type: 'string', required: true, filterable: true },
       {
-        name: "published",
-        type: "boolean",
+        name: 'published',
+        type: 'boolean',
         required: false,
         filterable: true,
         defaultValue: false,
       },
       {
-        name: "storageType",
-        type: "string",
+        name: 'storageType',
+        type: 'string',
         required: false,
         filterable: true,
-        defaultValue: "local",
+        defaultValue: 'local',
       },
       {
-        name: "ownerId",
-        type: "relation",
+        name: 'ownerId',
+        type: 'relation',
         required: true,
         filterable: true,
-        relation: { model: "user", type: "one" },
+        relation: { model: 'user', type: 'one' },
       },
     ],
-    searchFields: ["name"],
+    searchFields: ['name'],
     defaultFilters: { deletedAt: null },
     defaultIncludes: { owner: { select: { id: true, username: true } } },
-    defaultOrderBy: { createdAt: "desc" },
+    defaultOrderBy: { createdAt: 'desc' },
     softDelete: true,
     permissions: {
-      create: ["ADMIN", "STORE_ADMIN"],
-      read: ["ADMIN", "STORE_ADMIN"],
-      update: ["ADMIN", "STORE_ADMIN"],
-      delete: ["ADMIN"],
-      list: ["ADMIN", "STORE_ADMIN"],
+      create: ['ADMIN', 'STORE_ADMIN'],
+      read: ['ADMIN', 'STORE_ADMIN'],
+      update: ['ADMIN', 'STORE_ADMIN'],
+      delete: ['ADMIN'],
+      list: ['ADMIN', 'STORE_ADMIN'],
     },
   },
 };

@@ -1,12 +1,14 @@
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
+import { z } from 'zod';
+
+import { TRPCError } from '@trpc/server';
+
 import {
+  FilterOperation,
   QueryBuilder,
   QueryBuilderOptions,
   QueryBuilderResult,
   SearchFilter,
-  FilterOperation,
-} from "./queryBuilder";
+} from './queryBuilder';
 
 /**
  * Advanced search filter schema
@@ -15,28 +17,28 @@ export const searchFilterSchema = z.object({
   field: z.string(),
   value: z.any(),
   operation: z.enum([
-    "eq",
-    "ne",
-    "gt",
-    "gte",
-    "lt",
-    "lte",
-    "in",
-    "notIn",
-    "contains",
-    "startsWith",
-    "endsWith",
-    "isNull",
-    "isNotNull",
-    "between",
-    "notContains",
-    "regex",
-    "search",
-    "has",
-    "hasNot",
-    "some",
-    "every",
-    "none",
+    'eq',
+    'ne',
+    'gt',
+    'gte',
+    'lt',
+    'lte',
+    'in',
+    'notIn',
+    'contains',
+    'startsWith',
+    'endsWith',
+    'isNull',
+    'isNotNull',
+    'between',
+    'notContains',
+    'regex',
+    'search',
+    'has',
+    'hasNot',
+    'some',
+    'every',
+    'none',
   ]),
   relation: z.string().optional(),
   caseSensitive: z.boolean().optional(),
@@ -50,7 +52,7 @@ export const baseListInputSchema = z.object({
   offset: z.number().min(0).optional().default(0),
   search: z.string().optional(),
   advancedSearch: z.array(searchFilterSchema).optional(),
-  orderBy: z.record(z.string(), z.enum(["asc", "desc"])).optional(),
+  orderBy: z.record(z.string(), z.enum(['asc', 'desc'])).optional(),
 });
 
 /**
@@ -72,7 +74,7 @@ export interface ListEndpointConfig<T> {
   searchFields?: string[];
   defaultFilters?: Record<string, any>;
   defaultIncludes?: Record<string, any>;
-  defaultOrderBy?: Record<string, "asc" | "desc">;
+  defaultOrderBy?: Record<string, 'asc' | 'desc'>;
   maxLimit?: number;
   transformData?: (data: T[]) => any[];
   validateAccess?: (ctx: any) => Promise<boolean>;
@@ -105,8 +107,8 @@ export class ListEndpointBuilder<T> {
           const hasAccess = await this.config.validateAccess(ctx);
           if (!hasAccess) {
             throw new TRPCError({
-              code: "FORBIDDEN",
-              message: "Access denied",
+              code: 'FORBIDDEN',
+              message: 'Access denied',
             });
           }
         }
@@ -154,8 +156,8 @@ export class ListEndpointBuilder<T> {
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch data",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch data',
         });
       }
     };
@@ -171,7 +173,7 @@ export const ListEndpointConfigs = {
    */
   store: {
     model: null, // Will be set dynamically
-    searchFields: ["title"],
+    searchFields: ['title'],
     defaultFilters: { deletedAt: null },
     defaultIncludes: {
       storeType: true,
@@ -191,7 +193,7 @@ export const ListEndpointConfigs = {
         },
       },
     },
-    defaultOrderBy: { createdAt: "desc" as const },
+    defaultOrderBy: { createdAt: 'desc' as const },
     customFilters: (input: any) => {
       const filters: Record<string, any> = {};
       if (input.active !== undefined) filters.active = input.active;
@@ -206,12 +208,12 @@ export const ListEndpointConfigs = {
    */
   user: {
     model: null, // Will be set dynamically
-    searchFields: ["username"],
+    searchFields: ['username'],
     defaultFilters: { deletedAt: null },
     defaultIncludes: {
       Profile: true,
     },
-    defaultOrderBy: { createdAt: "desc" as const },
+    defaultOrderBy: { createdAt: 'desc' as const },
     customFilters: (input: any) => {
       const filters: Record<string, any> = {};
       if (input.role) filters.role = input.role;
@@ -225,7 +227,7 @@ export const ListEndpointConfigs = {
    */
   file: {
     model: null, // Will be set dynamically
-    searchFields: ["name"],
+    searchFields: ['name'],
     defaultFilters: { deletedAt: null },
     defaultIncludes: {
       owner: {
@@ -235,7 +237,7 @@ export const ListEndpointConfigs = {
         },
       },
     },
-    defaultOrderBy: { createdAt: "desc" as const },
+    defaultOrderBy: { createdAt: 'desc' as const },
     customFilters: (input: any) => {
       const filters: Record<string, any> = {};
       if (input.published !== undefined) filters.published = input.published;

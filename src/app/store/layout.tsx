@@ -1,15 +1,16 @@
-import type { Metadata } from "next";
-import StoreLayoutWrapper from "@/components/StoreLayoutWrapper";
+import type { Metadata } from 'next';
+
+import StoreLayoutWrapper from '@/components/StoreLayoutWrapper';
 
 export const metadata: Metadata = {
-    title: "فروشگاه - DrMenu",
-    description: "پنل مدیریت فروشگاه",
+  title: 'فروشگاه - DrMenu',
+  description: 'پنل مدیریت فروشگاه',
 };
 
 export default function StoreLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return <StoreLayoutWrapper>{children}</StoreLayoutWrapper>;
+  return <StoreLayoutWrapper>{children}</StoreLayoutWrapper>;
 }

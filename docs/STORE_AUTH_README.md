@@ -131,10 +131,10 @@ The store authentication pages use a green/emerald color scheme to differentiate
 
 ```typescript
 const signupMutation = trpc.auth.signUp.useMutation({
-  onSuccess: (data) => {
+  onSuccess: data => {
     router.push(`/store/otp?username=${data.username}&type=signup`);
   },
-  onError: (error) => {
+  onError: error => {
     setError(error.message);
   },
 });
@@ -157,7 +157,7 @@ export default function MyProtectedPage() {
 ### User Store Usage
 
 ```typescript
-import { useUserStore } from "@/lib/store/userStore";
+import { useUserStore } from '@/lib/store/userStore';
 
 const { storeUser, storeToken, setStoreUser, logoutStore } = useUserStore();
 ```

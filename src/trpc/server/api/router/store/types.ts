@@ -1,9 +1,9 @@
-import { Store, StoreType, User, StoreBranch, Category } from "@prisma/client";
+import { Category, Store, StoreBranch, StoreType, User } from '@prisma/client';
 
 // Base types
 export type StoreWithRelations = Store & {
   storeType: StoreType;
-  user: Pick<User, "id" | "username">;
+  user: Pick<User, 'id' | 'username'>;
   StoreBranch: (StoreBranch & {
     Category: Category[];
   })[];
@@ -85,7 +85,7 @@ export type StoreWhereClause = {
   deletedAt: null;
   title?: {
     contains: string;
-    mode: "insensitive";
+    mode: 'insensitive';
   };
   active?: boolean;
   storeTypeId?: string;

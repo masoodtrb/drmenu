@@ -1,30 +1,33 @@
+import { Role } from '@prisma/client';
+import { compare, hash } from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import passport from 'passport';
+import {
+  ExtractJwt,
+  Strategy as JwtStrategy,
+  StrategyOptions,
+} from 'passport-jwt';
+import { z } from 'zod';
+
+import { OtpQueue } from '@/queue/otpQueue';
 import {
   createTRPCRouter,
-  publicProcedure,
   privateProcedure,
+  publicProcedure,
   requireRoles,
-} from "@/trpc/server";
+} from '@/trpc/server';
+import { getErrorMessage } from '@/trpc/server/constants/messages';
+import { addMinutesToDate, otpDigit } from '@/trpc/server/helper/otp-generator';
+import { generateSecureToken } from '@/trpc/server/helper/token-generator';
+
+import { TRPCError } from '@trpc/server';
+
 import {
   loginSchema,
+  loginWithOTPSchema,
   signUpSchema,
   verifyUserSchema,
-  loginWithOTPSchema,
-} from "./validation";
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { compare, hash } from "bcrypt";
-import { addMinutesToDate, otpDigit } from "@/trpc/server/helper/otp-generator";
-import { generateSecureToken } from "@/trpc/server/helper/token-generator";
-import { OtpQueue } from "@/queue/otpQueue";
-import { getErrorMessage } from "@/trpc/server/constants/messages";
-import passport from "passport";
-import {
-  Strategy as JwtStrategy,
-  ExtractJwt,
-  StrategyOptions,
-} from "passport-jwt";
-import jwt from "jsonwebtoken";
-import { Role } from "@prisma/client";
+} from './validation';
 
 // Passport JWT strategy setup
 const opts: StrategyOptions = {
@@ -36,11 +39,11 @@ passport.use(
   new JwtStrategy(opts, async (jwt_payload, done) => {
     try {
       // Fetch user from DB
-      const user = await import("@/trpc/server/db").then((m) =>
+      const user = await import('@/trpc/server/db').then(m =>
         m.prisma.user.findUnique({ where: { id: jwt_payload.userId } })
       );
       if (!user || !user.active) {
-        return done(null, false, { message: "User not found or not active" });
+        return done(null, false, { message: 'User not found or not active' });
       }
       return done(null, user);
     } catch (err) {
@@ -63,8 +66,8 @@ export const authRouter = createTRPCRouter({
 
         if (existUser) {
           throw new TRPCError({
-            code: "CONFLICT",
-            message: getErrorMessage("authMessage", "signUp", "existUser"),
+            code: 'CONFLICT',
+            message: getErrorMessage('authMessage', 'signUp', 'existUser'),
           });
         }
 
@@ -74,13 +77,13 @@ export const authRouter = createTRPCRouter({
         );
 
         const user = await db?.user.create({
-          data: { username, password: hashedPassword, role: "STORE_ADMIN" },
+          data: { username, password: hashedPassword, role: 'STORE_ADMIN' },
         });
 
         if (!user)
           throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: getErrorMessage("authMessage", "signUp", "createUser"),
+            code: 'INTERNAL_SERVER_ERROR',
+            message: getErrorMessage('authMessage', 'signUp', 'createUser'),
           });
 
         const code = otpDigit();
@@ -91,7 +94,7 @@ export const authRouter = createTRPCRouter({
           data: {
             otp: code,
             token,
-            type: "SIGNUP",
+            type: 'SIGNUP',
             identifier: username,
             expiresAt,
             userId: user.id,
@@ -113,8 +116,8 @@ export const authRouter = createTRPCRouter({
       } catch (err: unknown) {
         console.error(err);
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: getErrorMessage("authMessage", "signUp", "createUser"),
+          code: 'INTERNAL_SERVER_ERROR',
+          message: getErrorMessage('authMessage', 'signUp', 'createUser'),
         });
       }
     }),
@@ -128,16 +131,16 @@ export const authRouter = createTRPCRouter({
 
       if (!user) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: getErrorMessage("authMessage", "signUp", "userNotFound"),
+          code: 'UNAUTHORIZED',
+          message: getErrorMessage('authMessage', 'signUp', 'userNotFound'),
         });
       }
 
       const isValid = await compare(password, user.password);
       if (!isValid) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: getErrorMessage("authMessage", "signUp", "invalidPassword"),
+          code: 'UNAUTHORIZED',
+          message: getErrorMessage('authMessage', 'signUp', 'invalidPassword'),
         });
       }
 
@@ -148,7 +151,7 @@ export const authRouter = createTRPCRouter({
         role: user.role,
       };
       const token = jwt.sign(jwtPayload, process.env.JWT_SECRET as string, {
-        expiresIn: "7d",
+        expiresIn: '7d',
       });
 
       return {
@@ -160,8 +163,8 @@ export const authRouter = createTRPCRouter({
     } catch (err: unknown) {
       console.error(err);
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: getErrorMessage("authMessage", "signUp", "loginFailed"),
+        code: 'INTERNAL_SERVER_ERROR',
+        message: getErrorMessage('authMessage', 'signUp', 'loginFailed'),
       });
     }
   }),
@@ -175,15 +178,15 @@ export const authRouter = createTRPCRouter({
           identifier: username,
           otp,
           token,
-          type: "SIGNUP",
+          type: 'SIGNUP',
           used: false,
           expiresAt: { gte: new Date() },
         },
       });
       if (!otpRecord) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Invalid or expired OTP.",
+          code: 'UNAUTHORIZED',
+          message: 'Invalid or expired OTP.',
         });
       }
       // Mark OTP as used
@@ -216,16 +219,16 @@ export const authRouter = createTRPCRouter({
 
         if (!user) {
           throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Invalid credentials. Access denied.",
+            code: 'UNAUTHORIZED',
+            message: 'Invalid credentials. Access denied.',
           });
         }
 
         // Check if user is active
         if (!user.active) {
           throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Account is not active. Please contact support.",
+            code: 'UNAUTHORIZED',
+            message: 'Account is not active. Please contact support.',
           });
         }
 
@@ -233,16 +236,16 @@ export const authRouter = createTRPCRouter({
         const isValid = await compare(password, user.password);
         if (!isValid) {
           throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Invalid credentials. Access denied.",
+            code: 'UNAUTHORIZED',
+            message: 'Invalid credentials. Access denied.',
           });
         }
 
         // Check if user has ADMIN role
-        if (user.role !== "ADMIN") {
+        if (user.role !== 'ADMIN') {
           throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Access denied. Super admin privileges required.",
+            code: 'FORBIDDEN',
+            message: 'Access denied. Super admin privileges required.',
           });
         }
 
@@ -253,7 +256,7 @@ export const authRouter = createTRPCRouter({
           role: user.role,
         };
         const token = jwt.sign(jwtPayload, process.env.JWT_SECRET as string, {
-          expiresIn: "24h", // Shorter expiration for admin tokens
+          expiresIn: '24h', // Shorter expiration for admin tokens
         });
 
         return {
@@ -264,13 +267,13 @@ export const authRouter = createTRPCRouter({
           profile: user.Profile,
         };
       } catch (err: unknown) {
-        console.error("Admin login error:", err);
+        console.error('Admin login error:', err);
         if (err instanceof TRPCError) {
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Login failed. Please try again.",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Login failed. Please try again.',
         });
       }
     }),
@@ -290,23 +293,23 @@ export const authRouter = createTRPCRouter({
 
       if (!currentUser) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User not found.",
+          code: 'UNAUTHORIZED',
+          message: 'User not found.',
         });
       }
 
       if (!currentUser.active) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Account is not active.",
+          code: 'UNAUTHORIZED',
+          message: 'Account is not active.',
         });
       }
 
       // Check if user has ADMIN role
-      if (currentUser.role !== "ADMIN") {
+      if (currentUser.role !== 'ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Access denied. Super admin privileges required.",
+          code: 'FORBIDDEN',
+          message: 'Access denied. Super admin privileges required.',
         });
       }
 
@@ -317,13 +320,13 @@ export const authRouter = createTRPCRouter({
         profile: currentUser.Profile,
       };
     } catch (err: unknown) {
-      console.error("Admin token validation error:", err);
+      console.error('Admin token validation error:', err);
       if (err instanceof TRPCError) {
         throw err;
       }
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Token validation failed.",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Token validation failed.',
       });
     }
   }),
@@ -343,23 +346,23 @@ export const authRouter = createTRPCRouter({
 
       if (!currentUser) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User not found.",
+          code: 'UNAUTHORIZED',
+          message: 'User not found.',
         });
       }
 
       if (!currentUser.active) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Account is not active.",
+          code: 'UNAUTHORIZED',
+          message: 'Account is not active.',
         });
       }
 
       // Check if user has STORE_ADMIN role
-      if (currentUser.role !== "STORE_ADMIN") {
+      if (currentUser.role !== 'STORE_ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Access denied. Store admin privileges required.",
+          code: 'FORBIDDEN',
+          message: 'Access denied. Store admin privileges required.',
         });
       }
 
@@ -370,13 +373,13 @@ export const authRouter = createTRPCRouter({
         profile: currentUser.Profile,
       };
     } catch (err: unknown) {
-      console.error("Store admin token validation error:", err);
+      console.error('Store admin token validation error:', err);
       if (err instanceof TRPCError) {
         throw err;
       }
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Token validation failed.",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Token validation failed.',
       });
     }
   }),
@@ -386,7 +389,7 @@ export const authRouter = createTRPCRouter({
     .input(
       z.object({
         username: z.string(),
-        type: z.enum(["LOGIN", "SIGNUP", "PASSWORD_RESET"]),
+        type: z.enum(['LOGIN', 'SIGNUP', 'PASSWORD_RESET']),
       })
     )
     .mutation(async ({ ctx: { db }, input }) => {
@@ -394,23 +397,23 @@ export const authRouter = createTRPCRouter({
         const { username, type } = input;
 
         // Check if user exists for LOGIN and PASSWORD_RESET
-        if (type !== "SIGNUP") {
+        if (type !== 'SIGNUP') {
           const user = await db?.user.findFirst({
             where: { username },
           });
 
           if (!user) {
             throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "User not found.",
+              code: 'NOT_FOUND',
+              message: 'User not found.',
             });
           }
 
-          if (!user.active && type === "LOGIN") {
+          if (!user.active && type === 'LOGIN') {
             throw new TRPCError({
-              code: "UNAUTHORIZED",
+              code: 'UNAUTHORIZED',
               message:
-                "Account is not active. Please verify your account first.",
+                'Account is not active. Please verify your account first.',
             });
           }
         }
@@ -421,7 +424,7 @@ export const authRouter = createTRPCRouter({
 
         // Find user for non-signup OTPs
         let userId: string | null = null;
-        if (type !== "SIGNUP") {
+        if (type !== 'SIGNUP') {
           const existingUser = await db?.user.findFirst({
             where: { username },
           });
@@ -448,14 +451,14 @@ export const authRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: "OTP sent successfully",
+          message: 'OTP sent successfully',
           token,
         };
       } catch (err: unknown) {
         console.error(err);
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to send OTP. Please try again.",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to send OTP. Please try again.',
         });
       }
     }),
@@ -473,7 +476,7 @@ export const authRouter = createTRPCRouter({
             identifier: username,
             otp,
             token,
-            type: "LOGIN",
+            type: 'LOGIN',
             used: false,
             expiresAt: { gte: new Date() },
           },
@@ -481,8 +484,8 @@ export const authRouter = createTRPCRouter({
 
         if (!otpRecord) {
           throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Invalid or expired OTP.",
+            code: 'UNAUTHORIZED',
+            message: 'Invalid or expired OTP.',
           });
         }
 
@@ -496,15 +499,15 @@ export const authRouter = createTRPCRouter({
 
         if (!user) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "User not found.",
+            code: 'NOT_FOUND',
+            message: 'User not found.',
           });
         }
 
         if (!user.active) {
           throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Account is not active. Please verify your account first.",
+            code: 'UNAUTHORIZED',
+            message: 'Account is not active. Please verify your account first.',
           });
         }
 
@@ -524,7 +527,7 @@ export const authRouter = createTRPCRouter({
           jwtPayload,
           process.env.JWT_SECRET as string,
           {
-            expiresIn: "7d",
+            expiresIn: '7d',
           }
         );
 
@@ -541,8 +544,8 @@ export const authRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Login failed. Please try again.",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Login failed. Please try again.',
         });
       }
     }),

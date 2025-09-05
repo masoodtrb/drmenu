@@ -1,16 +1,20 @@
-import { trpc } from "@/trpc/server/api";
-import Image from "next/image";
-import HomePage from "./_modules/HomePage";
-import { OtpQueue } from "@/queue/otpQueue";
-import { ExampleUsage } from "@/components/ui/example-usage";
-import { Button } from "@/components/ui/button";
+import Image from 'next/image';
+
+import { Button } from '@/components/ui/button';
+import { ExampleUsage } from '@/components/ui/example-usage';
+import { OtpQueue } from '@/queue/otpQueue';
+import { trpc } from '@/trpc/server/api';
+
+import HomePage from './_modules/HomePage';
 
 export default async function Home() {
   const q = new OtpQueue();
 
   q.addJob({
-    otp: '12345', userId: '12423423', username: '09053352755'
-  })
+    otp: '12345',
+    userId: '12423423',
+    username: '09053352755',
+  });
 
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -27,7 +31,7 @@ export default async function Home() {
         />
         <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
           <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
+            Get started by editing{' '}
             <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
               src/app/page.tsx
             </code>

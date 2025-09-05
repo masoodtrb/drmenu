@@ -372,8 +372,8 @@ GET / api / trpc / subscription.listPlans;
 
 ```typescript
 // Interval Toggle
-const [selectedInterval, setSelectedInterval] = useState<"MONTHLY" | "YEARLY">(
-  "MONTHLY"
+const [selectedInterval, setSelectedInterval] = useState<'MONTHLY' | 'YEARLY'>(
+  'MONTHLY'
 );
 
 // Plan Filtering
@@ -383,11 +383,11 @@ const plans =
 
 // Price Formatting
 const formatPrice = (price: number, currency: string) => {
-  if (currency === "IRR") {
-    return new Intl.NumberFormat("fa-IR").format(price) + " تومان";
+  if (currency === 'IRR') {
+    return new Intl.NumberFormat('fa-IR').format(price) + ' تومان';
   }
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
     currency: currency,
   }).format(price);
 };
@@ -425,21 +425,21 @@ const deletePlanMutation = trpc.subscription.deletePlan.useMutation();
 
 ```typescript
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
+          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
+        outline: 'text-foreground',
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: 'default',
     },
   }
 );
@@ -535,7 +535,7 @@ npx prisma db seed
 
 ```typescript
 // Add subscription router to main API
-import { subscriptionRouter } from "./router/subscription";
+import { subscriptionRouter } from './router/subscription';
 
 export const appRouter = createTRPCRouter({
   // ... other routers
@@ -560,13 +560,13 @@ export const appRouter = createTRPCRouter({
 ```typescript
 const createPlan = async () => {
   const result = await trpc.subscription.createPlan.mutate({
-    name: "Premium",
-    nameFa: "پریمیوم",
-    description: "Premium plan for large restaurants",
-    descriptionFa: "طرح پریمیوم برای رستوران‌های بزرگ",
+    name: 'Premium',
+    nameFa: 'پریمیوم',
+    description: 'Premium plan for large restaurants',
+    descriptionFa: 'طرح پریمیوم برای رستوران‌های بزرگ',
     price: 3000000,
-    currency: "IRR",
-    interval: "MONTHLY",
+    currency: 'IRR',
+    interval: 'MONTHLY',
     features: {
       analytics: true,
       customDomain: true,
@@ -590,8 +590,8 @@ const createPlan = async () => {
 const subscribeToPlan = async (planId: string) => {
   const result = await trpc.subscription.subscribe.mutate({
     planId,
-    paymentProvider: "zarinpal",
-    paymentMethod: "online",
+    paymentProvider: 'zarinpal',
+    paymentMethod: 'online',
   });
 };
 ```
@@ -686,7 +686,7 @@ npx prisma db seed --force
 
 ```typescript
 // Check if subscription router is properly imported
-import { subscriptionRouter } from "./router/subscription";
+import { subscriptionRouter } from './router/subscription';
 
 // Verify router is added to appRouter
 export const appRouter = createTRPCRouter({
@@ -698,7 +698,7 @@ export const appRouter = createTRPCRouter({
 
 ```typescript
 // Ensure proper tRPC client setup
-import { trpc } from "@/trpc/client";
+import { trpc } from '@/trpc/client';
 
 // Use proper hook syntax
 const { data, isLoading } = trpc.subscription.listPlans.useQuery();
@@ -710,11 +710,11 @@ const { data, isLoading } = trpc.subscription.listPlans.useQuery();
 // Enable debug logging
 const { data, error, isLoading } =
   trpc.subscription.getUserSubscription.useQuery(undefined, {
-    onError: (error) => {
-      console.error("Subscription error:", error);
+    onError: error => {
+      console.error('Subscription error:', error);
     },
-    onSuccess: (data) => {
-      console.log("Subscription data:", data);
+    onSuccess: data => {
+      console.log('Subscription data:', data);
     },
   });
 ```

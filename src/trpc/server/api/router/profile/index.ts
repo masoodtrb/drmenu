@@ -1,11 +1,13 @@
+import { Role } from '@prisma/client';
+import { z } from 'zod';
+
 import {
   createTRPCRouter,
   privateProcedure,
   requireRoles,
-} from "@/trpc/server";
-import { TRPCError } from "@trpc/server";
-import { Role } from "@prisma/client";
-import { z } from "zod";
+} from '@/trpc/server';
+
+import { TRPCError } from '@trpc/server';
 
 export const profileRouter = createTRPCRouter({
   // Get current user's profile (/me)
@@ -57,16 +59,16 @@ export const profileRouter = createTRPCRouter({
       const user = ctx.user;
       const targetUserId = input.userId ?? user.id;
       // Only allow if admin or owner
-      if (input.userId && user.role !== "ADMIN") {
+      if (input.userId && user.role !== 'ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Only admin can update other users' profiles.",
         });
       }
       if (!input.userId && user.id !== targetUserId) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only update your own profile.",
+          code: 'FORBIDDEN',
+          message: 'You can only update your own profile.',
         });
       }
       const profile = await ctx.db.profile.update({

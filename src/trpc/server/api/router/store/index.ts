@@ -1,23 +1,26 @@
+import { Role } from '@prisma/client';
+
 import {
   createTRPCRouter,
   privateProcedure,
   requireRoles,
-} from "@/trpc/server";
-import { TRPCError } from "@trpc/server";
-import { Role } from "@prisma/client";
+} from '@/trpc/server';
+import { getErrorMessage } from '@/trpc/server/constants/messages';
+import {
+  SearchFilter,
+  StoreQueryBuilder,
+} from '@/trpc/server/helper/queryBuilder';
+
+import { TRPCError } from '@trpc/server';
+
 import {
   createStoreSchema,
-  updateStoreSchema,
-  getStoreByIdSchema,
   deleteStoreSchema,
+  getStoreByIdSchema,
   listStoresSchema,
   searchFilterSchema,
-} from "./validation";
-import { getErrorMessage } from "@/trpc/server/constants/messages";
-import {
-  StoreQueryBuilder,
-  SearchFilter,
-} from "@/trpc/server/helper/queryBuilder";
+  updateStoreSchema,
+} from './validation';
 
 export const storeRouter = createTRPCRouter({
   // Create Store (Super Admin only)
@@ -35,8 +38,8 @@ export const storeRouter = createTRPCRouter({
 
         if (!storeType) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Store type not found",
+            code: 'NOT_FOUND',
+            message: 'Store type not found',
           });
         }
 
@@ -51,8 +54,8 @@ export const storeRouter = createTRPCRouter({
 
         if (existingStore) {
           throw new TRPCError({
-            code: "CONFLICT",
-            message: "Store with this title already exists",
+            code: 'CONFLICT',
+            message: 'Store with this title already exists',
           });
         }
 
@@ -84,8 +87,8 @@ export const storeRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create store",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create store',
         });
       }
     }),
@@ -127,8 +130,8 @@ export const storeRouter = createTRPCRouter({
 
         if (!store) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Store not found",
+            code: 'NOT_FOUND',
+            message: 'Store not found',
           });
         }
 
@@ -139,8 +142,8 @@ export const storeRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch store",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch store',
         });
       }
     }),
@@ -199,7 +202,7 @@ export const storeRouter = createTRPCRouter({
 
         if (titlePattern) {
           queryBuilder.searchStoresAdvanced([
-            { field: "title", value: titlePattern, operation: "contains" },
+            { field: 'title', value: titlePattern, operation: 'contains' },
           ]);
         }
 
@@ -219,8 +222,8 @@ export const storeRouter = createTRPCRouter({
       } catch (err: unknown) {
         console.error(err);
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch stores",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch stores',
         });
       }
     }),
@@ -242,8 +245,8 @@ export const storeRouter = createTRPCRouter({
 
         if (!existingStore) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Store not found",
+            code: 'NOT_FOUND',
+            message: 'Store not found',
           });
         }
 
@@ -255,8 +258,8 @@ export const storeRouter = createTRPCRouter({
 
           if (!storeType) {
             throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "Store type not found",
+              code: 'NOT_FOUND',
+              message: 'Store type not found',
             });
           }
         }
@@ -274,8 +277,8 @@ export const storeRouter = createTRPCRouter({
 
           if (titleConflict) {
             throw new TRPCError({
-              code: "CONFLICT",
-              message: "Store with this title already exists",
+              code: 'CONFLICT',
+              message: 'Store with this title already exists',
             });
           }
         }
@@ -309,8 +312,8 @@ export const storeRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to update store",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update store',
         });
       }
     }),
@@ -339,16 +342,16 @@ export const storeRouter = createTRPCRouter({
 
         if (!store) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Store not found",
+            code: 'NOT_FOUND',
+            message: 'Store not found',
           });
         }
 
         // Check if store has active branches
         if (store.StoreBranch.length > 0) {
           throw new TRPCError({
-            code: "CONFLICT",
-            message: "Cannot delete store with active branches",
+            code: 'CONFLICT',
+            message: 'Cannot delete store with active branches',
           });
         }
 
@@ -360,7 +363,7 @@ export const storeRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: "Store deleted successfully",
+          message: 'Store deleted successfully',
         };
       } catch (err: unknown) {
         console.error(err);
@@ -368,8 +371,8 @@ export const storeRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to delete store",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete store',
         });
       }
     }),
@@ -382,7 +385,7 @@ export const storeRouter = createTRPCRouter({
           deletedAt: null,
         },
         orderBy: {
-          title: "asc",
+          title: 'asc',
         },
       });
 
@@ -390,8 +393,8 @@ export const storeRouter = createTRPCRouter({
     } catch (err: unknown) {
       console.error(err);
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to fetch store types",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch store types',
       });
     }
   }),
@@ -411,8 +414,8 @@ export const storeRouter = createTRPCRouter({
     } catch (err: unknown) {
       console.error(err);
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to fetch your stores",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch your stores',
       });
     }
   }),
@@ -450,8 +453,8 @@ export const storeRouter = createTRPCRouter({
 
         if (!store) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Store not found",
+            code: 'NOT_FOUND',
+            message: 'Store not found',
           });
         }
 
@@ -462,8 +465,8 @@ export const storeRouter = createTRPCRouter({
           throw err;
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch store",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch store',
         });
       }
     }),
