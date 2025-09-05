@@ -10,7 +10,6 @@ export async function GET() {
     // Check Redis connection
     const redis = redisConnection;
     await redis.ping();
-    await redis.quit();
 
     return NextResponse.json({
       status: "healthy",
