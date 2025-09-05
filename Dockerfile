@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for Next.js application with minimal production image
 
 # Stage 1: Base image with Node.js and pnpm
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 # Install pnpm
 RUN npm install -g pnpm
@@ -30,6 +30,9 @@ COPY . .
 # Generate Prisma client
 RUN pnpm prisma generate
 
+# Run database migrations
+RUN pnpm prisma migrate deploy
+
 # Build the application
 RUN pnpm build
 
@@ -43,7 +46,10 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --prod
 
 # Stage 5: Production image
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
+
+# Install postgresql-client for database health checks
+RUN apk add --no-cache postgresql-client
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -68,6 +74,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
+# Copy startup script
+COPY docker/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Create uploads directory
 RUN mkdir -p uploads && chown -R nextjs:nodejs uploads
 
@@ -89,4 +99,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
-CMD ["node", "server.js"]
+CMD ["./start.sh"]

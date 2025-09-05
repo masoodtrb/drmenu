@@ -1,6 +1,6 @@
+import { redisConnection } from "@/database/redis";
+import { prisma as db } from "@/trpc/server/db";
 import { NextResponse } from "next/server";
-import { db } from "@/trpc/server/db";
-import { createClient } from "@/database/redis";
 
 export async function GET() {
   try {
@@ -8,9 +8,9 @@ export async function GET() {
     await db.$queryRaw`SELECT 1`;
 
     // Check Redis connection
-    const redis = createClient();
+    const redis = redisConnection;
     await redis.ping();
-    await redis.disconnect();
+    await redis.quit();
 
     return NextResponse.json({
       status: "healthy",

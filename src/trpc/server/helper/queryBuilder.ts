@@ -76,7 +76,7 @@ export class QueryBuilder {
     // Handle nested relations
     if (relation) {
       const relationPath = relation.split(".");
-      let currentCondition: any = {};
+      const currentCondition: any = {};
       let current = currentCondition;
 
       // Build nested path
