@@ -113,8 +113,8 @@ temp/
 # TypeScript
 *.tsbuildinfo
 
-# Prisma
-prisma/migrations/
+# Prisma (keep migrations for runtime)
+# prisma/migrations/
 
 # Uploads (will be created at runtime)
 uploads/*

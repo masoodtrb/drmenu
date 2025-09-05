@@ -30,9 +30,6 @@ COPY . .
 # Generate Prisma client
 RUN pnpm prisma generate
 
-# Run database migrations
-RUN pnpm prisma migrate deploy
-
 # Build the application
 RUN pnpm build
 
