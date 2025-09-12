@@ -19,6 +19,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  isEmail,
+  isMobile,
+  validateEmailWithPersian,
+  validateMobileWithPersian,
+} from '@/lib/util/commonValidations';
 import { trpc } from '@/trpc/client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,10 +35,7 @@ const forgotPasswordSchema = z.object({
     .string()
     .min(1, 'ایمیل یا شماره موبایل الزامی است')
     .refine(value => {
-      // Basic email or mobile validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const mobileRegex = /^09\d{9}$/;
-      return emailRegex.test(value) || mobileRegex.test(value);
+      return isEmail(value) || isMobile(value);
     }, 'لطفاً ایمیل یا شماره موبایل معتبر وارد کنید'),
 });
 
@@ -75,8 +78,20 @@ export default function ForgotPasswordPage() {
     setSuccess(false);
     setIsLoading(true);
 
+    // Normalize username (convert Persian numbers to English)
+    let normalizedUsername = data.username;
+
+    // Check if it's a mobile number and normalize it
+    if (isMobile(data.username)) {
+      const mobileValidation = validateMobileWithPersian(data.username);
+      normalizedUsername = mobileValidation.normalized;
+    } else if (isEmail(data.username)) {
+      const emailValidation = validateEmailWithPersian(data.username);
+      normalizedUsername = emailValidation.normalized;
+    }
+
     sendOTPMutation.mutate({
-      username: data.username,
+      username: normalizedUsername,
       type: 'PASSWORD_RESET',
     });
   };
@@ -151,7 +166,7 @@ export default function ForgotPasswordPage() {
                 id="username"
                 type="text"
                 {...register('username')}
-                placeholder="example@email.com یا 09123456789"
+                placeholder="example@email.com یا 09123456789 یا ۰۹۱۲۳۴۵۶۷۸۹"
                 className={`w-full text-right ${errors.username ? 'border-red-500 focus:border-red-500' : ''}`}
                 disabled={isLoading}
               />

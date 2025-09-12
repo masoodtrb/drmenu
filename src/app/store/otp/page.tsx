@@ -25,6 +25,12 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { useUserStore } from '@/lib/store/userStore';
+import {
+  isEmail,
+  isMobile,
+  validateEmailWithPersian,
+  validateMobileWithPersian,
+} from '@/lib/util/commonValidations';
 import { trpc } from '@/trpc/client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,10 +41,7 @@ const usernameSchema = z.object({
     .string()
     .min(1, 'ایمیل یا شماره موبایل الزامی است')
     .refine(value => {
-      // Basic email or mobile validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const mobileRegex = /^09\d{9}$/;
-      return emailRegex.test(value) || mobileRegex.test(value);
+      return isEmail(value) || isMobile(value);
     }, 'لطفاً ایمیل یا شماره موبایل معتبر وارد کنید'),
 });
 
@@ -232,8 +235,20 @@ export default function StoreOTPPage() {
     setError('');
     setIsResending(true);
 
+    // Normalize username (convert Persian numbers to English)
+    let normalizedUsername = data.username;
+
+    // Check if it's a mobile number and normalize it
+    if (isMobile(data.username)) {
+      const mobileValidation = validateMobileWithPersian(data.username);
+      normalizedUsername = mobileValidation.normalized;
+    } else if (isEmail(data.username)) {
+      const emailValidation = validateEmailWithPersian(data.username);
+      normalizedUsername = emailValidation.normalized;
+    }
+
     sendOTPMutation.mutate({
-      username: data.username,
+      username: normalizedUsername,
       type: 'LOGIN',
     });
   };
@@ -264,9 +279,14 @@ export default function StoreOTPPage() {
                 : 'کد تایید برای ورود ارسال شد'}
             </CardDescription>
             {username ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                {username}
-              </p>
+              <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                <p>{username}</p>
+                {isMobile(username) ? (
+                  <p className="text-xs mt-1">کد تایید به پیامک ارسال شد</p>
+                ) : (
+                  <p className="text-xs mt-1">کد تایید به ایمیل ارسال شد</p>
+                )}
+              </div>
             ) : (
               type === 'login' && (
                 <form
@@ -284,7 +304,7 @@ export default function StoreOTPPage() {
                       id="username"
                       type="text"
                       {...registerUsername('username')}
-                      placeholder="example@email.com یا 09123456789"
+                      placeholder="example@email.com یا 09123456789 یا ۰۹۱۲۳۴۵۶۷۸۹"
                       className={`w-full text-right ${usernameErrors.username ? 'border-red-500 focus:border-red-500' : ''}`}
                       disabled={isResending}
                     />
