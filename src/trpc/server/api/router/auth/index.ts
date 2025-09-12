@@ -9,6 +9,7 @@ import {
 } from 'passport-jwt';
 import { z } from 'zod';
 
+import { redisConnection } from '@/database/redis';
 import { OtpQueue } from '@/queue/otpQueue';
 import {
   createTRPCRouter,
@@ -25,7 +26,9 @@ import { TRPCError } from '@trpc/server';
 import {
   loginSchema,
   loginWithOTPSchema,
+  resetPasswordSchema,
   signUpSchema,
+  verifyPasswordResetOTPSchema,
   verifyUserSchema,
 } from './validation';
 
@@ -106,6 +109,7 @@ export const authRouter = createTRPCRouter({
           otp: code,
           userId: user.id,
           username,
+          type: 'SIGNUP',
         });
 
         return {
@@ -447,6 +451,7 @@ export const authRouter = createTRPCRouter({
           otp: code,
           userId: userId || undefined,
           username,
+          type,
         });
 
         return {
@@ -546,6 +551,121 @@ export const authRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Login failed. Please try again.',
+        });
+      }
+    }),
+
+  // Verify OTP for password reset
+  verifyPasswordResetOTP: publicProcedure
+    .input(verifyPasswordResetOTPSchema)
+    .mutation(async ({ ctx: { db }, input }) => {
+      try {
+        const { username, otp, token } = input;
+
+        // Find the OTP record
+        const otpRecord = await db?.otp.findFirst({
+          where: {
+            identifier: username,
+            otp,
+            token,
+            type: 'PASSWORD_RESET',
+            used: false,
+            expiresAt: { gte: new Date() },
+          },
+        });
+
+        if (!otpRecord) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'کد تایید نامعتبر یا منقضی شده است.',
+          });
+        }
+
+        // Mark OTP as used
+        await db?.otp.update({
+          where: { id: otpRecord.id },
+          data: { used: true },
+        });
+
+        // Generate a temporary reset token and store it in Redis
+        const resetToken = generateSecureToken();
+        const resetTokenExpiry = 15 * 60; // 15 minutes in seconds
+
+        // Store reset token in Redis with user ID
+        await redisConnection.setex(
+          `password_reset:${resetToken}`,
+          resetTokenExpiry,
+          JSON.stringify({
+            userId: otpRecord.userId,
+            username: username,
+            createdAt: new Date().toISOString(),
+          })
+        );
+
+        return {
+          success: true,
+          resetToken,
+        };
+      } catch (err: unknown) {
+        console.error(err);
+        if (err instanceof TRPCError) {
+          throw err;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'تایید کد ناموفق بود. لطفاً دوباره تلاش کنید.',
+        });
+      }
+    }),
+
+  // Reset password with reset token
+  resetPassword: publicProcedure
+    .input(resetPasswordSchema)
+    .mutation(async ({ ctx: { db }, input }) => {
+      try {
+        const { resetToken, newPassword } = input;
+
+        // Get reset token data from Redis
+        const resetTokenData = await redisConnection.get(
+          `password_reset:${resetToken}`
+        );
+
+        if (!resetTokenData) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'توکن نامعتبر یا منقضی شده است.',
+          });
+        }
+
+        const { userId, username } = JSON.parse(resetTokenData);
+
+        // Hash the new password
+        const hashedPassword = await hash(
+          newPassword,
+          Number(process.env.PASSWORD_SALT)
+        );
+
+        // Update user password
+        await db?.user.update({
+          where: { id: userId },
+          data: { password: hashedPassword },
+        });
+
+        // Delete the reset token from Redis
+        await redisConnection.del(`password_reset:${resetToken}`);
+
+        return {
+          success: true,
+          message: 'رمز عبور با موفقیت تغییر یافت.',
+        };
+      } catch (err: unknown) {
+        console.error(err);
+        if (err instanceof TRPCError) {
+          throw err;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'تغییر رمز عبور ناموفق بود. لطفاً دوباره تلاش کنید.',
         });
       }
     }),

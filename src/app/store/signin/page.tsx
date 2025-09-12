@@ -234,6 +234,14 @@ export default function StoreSigninPage() {
               >
                 ورود با کد تایید
               </Link>
+              <div>
+                <Link
+                  href="/store/forgot-password"
+                  className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                >
+                  فراموشی رمز عبور
+                </Link>
+              </div>
             </div>
 
             <Link

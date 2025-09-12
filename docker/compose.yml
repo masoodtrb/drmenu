@@ -117,6 +117,19 @@ services:
     profiles:
       - development
 
+  # MailHog for email testing (Development only)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: drmenu_mailhog
+    restart: unless-stopped
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"  # SMTP server
+      - "${MAILHOG_WEB_PORT:-8025}:8025"   # Web UI
+    networks:
+      - app_network
+    profiles:
+      - development
+
 volumes:
   postgres_data:
     driver: local

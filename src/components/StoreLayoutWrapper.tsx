@@ -17,7 +17,10 @@ export default function StoreLayoutWrapper({
   const isAuthPage =
     pathname.includes('/signin') ||
     pathname.includes('/signup') ||
-    pathname.includes('/otp');
+    pathname.includes('/otp') ||
+    pathname.includes('/forgot-password') ||
+    pathname.includes('/verify-reset-otp') ||
+    pathname.includes('/reset-password');
 
   if (isAuthPage) {
     return (
