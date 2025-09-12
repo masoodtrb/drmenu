@@ -71,15 +71,34 @@ export const profileRouter = createTRPCRouter({
           message: 'You can only update your own profile.',
         });
       }
-      const profile = await ctx.db.profile.update({
+
+      // Check if profile exists, if not create it
+      const existingProfile = await ctx.db.profile.findUnique({
         where: { userId: targetUserId },
-        data: {
-          firstName: input.firstName,
-          lastName: input.lastName,
-          nationalId: input.nationalId,
-        },
       });
-      return profile;
+
+      if (existingProfile) {
+        const profile = await ctx.db.profile.update({
+          where: { userId: targetUserId },
+          data: {
+            firstName: input.firstName,
+            lastName: input.lastName,
+            nationalId: input.nationalId,
+          },
+        });
+        return profile;
+      } else {
+        // Create new profile if it doesn't exist
+        const profile = await ctx.db.profile.create({
+          data: {
+            userId: targetUserId,
+            firstName: input.firstName || '',
+            lastName: input.lastName || '',
+            nationalId: input.nationalId,
+          },
+        });
+        return profile;
+      }
     }),
 
   // Delete profile

@@ -1,9 +1,16 @@
 'use client';
 
-import { LogOut, Settings, Store, User } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle,
+  Settings,
+  Store,
+  User,
+} from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,49 +20,97 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useUserStore } from '@/lib/store/userStore';
+import { validateProfileCompletion } from '@/lib/util/commonValidations';
+import { trpc } from '@/trpc/client';
 
 export default function StoreDashboardPage() {
   const router = useRouter();
-  const { storeUser, logoutStore } = useUserStore();
+  const { storeUser } = useUserStore();
 
-  const handleLogout = () => {
-    logoutStore();
-    router.push('/store/signin');
-  };
+  // Get user profile data
+  const { data: profileData, isLoading: profileLoading } =
+    trpc.profile.me.useQuery();
+
+  // Check profile completion
+  const profileCompletion = profileData?.profile
+    ? validateProfileCompletion(profileData.profile)
+    : {
+        isComplete: false,
+        missingFields: ['نام', 'نام خانوادگی', 'کد ملی'],
+        completionPercentage: 0,
+      };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-slate-900 dark:to-slate-800 p-4">
-      <div className="w-full"></div>
-      {/* Header */}
-      <div className="flex flex-col space-y-4 mb-8">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-3 space-x-reverse">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-              <Store className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                پنل مدیریت فروشگاه
-              </h1>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                خوش آمدید، {storeUser?.username}
+    <div className="space-y-6">
+      {/* Profile Completion Alert */}
+      {!profileLoading && !profileCompletion.isComplete && (
+        <Alert
+          variant="destructive"
+          className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20"
+        >
+          <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+          <AlertTitle className="text-orange-800 dark:text-orange-200">
+            تکمیل پروفایل ضروری است
+          </AlertTitle>
+          <AlertDescription className="text-orange-700 dark:text-orange-300">
+            <div className="mt-2">
+              <p className="mb-2">
+                برای استفاده کامل از سیستم، لطفاً اطلاعات زیر را تکمیل کنید:
               </p>
+              <ul className="list-disc list-inside space-y-1 mb-3">
+                {profileCompletion.missingFields.map((field, index) => (
+                  <li key={index} className="text-sm">
+                    {field}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">
+                  درصد تکمیل: {profileCompletion.completionPercentage}%
+                </span>
+                <Button
+                  size="sm"
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  onClick={() => router.push('/store/profile')}
+                >
+                  تکمیل پروفایل
+                </Button>
+              </div>
             </div>
-          </div>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            size="sm"
-            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
-          >
-            <LogOut className="w-4 h-4 ml-2" />
-            خروج
-          </Button>
-        </div>
-      </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Profile Completion Success Alert */}
+      {!profileLoading && profileCompletion.isComplete && (
+        <Alert variant="success">
+          <CheckCircle className="h-4 w-4" />
+          <AlertTitle>پروفایل شما تکمیل شده است</AlertTitle>
+          <AlertDescription>
+            <div className="mt-2">
+              <p className="mb-2">
+                تبریک! تمام اطلاعات پروفایل شما تکمیل شده است.
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">
+                  درصد تکمیل: {profileCompletion.completionPercentage}%
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-green-600 text-green-600 hover:bg-green-50 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-900/20"
+                  onClick={() => router.push('/store/profile')}
+                >
+                  ویرایش پروفایل
+                </Button>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Welcome Card */}
-      <Card className="mb-8 shadow-xl border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+      <Card className="shadow-xl border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">
             🎉 تبریک! ورود موفقیت‌آمیز بود
@@ -146,7 +201,7 @@ export default function StoreDashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-8">
+      <div>
         <Card className="shadow-xl border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -159,7 +214,11 @@ export default function StoreDashboardPage() {
                 <Store className="w-4 h-4 ml-2" />
                 ایجاد فروشگاه جدید
               </Button>
-              <Button variant="outline" disabled>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/store/profile')}
+                className="hover:bg-green-50 dark:hover:bg-green-900/20"
+              >
                 <User className="w-4 h-4 ml-2" />
                 ویرایش پروفایل
               </Button>

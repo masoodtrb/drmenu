@@ -44,3 +44,42 @@ export const validateEmailWithPersian = (email: string) => {
     wasConverted: email !== normalizedEmail,
   };
 };
+
+// Profile completion validation
+export interface ProfileCompletionStatus {
+  isComplete: boolean;
+  missingFields: string[];
+  completionPercentage: number;
+}
+
+export const validateProfileCompletion = (profile: {
+  firstName?: string | null;
+  lastName?: string | null;
+  nationalId?: string | null;
+}): ProfileCompletionStatus => {
+  const requiredFields = [
+    { key: 'firstName', label: 'نام' },
+    { key: 'lastName', label: 'نام خانوادگی' },
+    { key: 'nationalId', label: 'کد ملی' },
+  ];
+
+  const missingFields: string[] = [];
+
+  requiredFields.forEach(field => {
+    const value = profile[field.key as keyof typeof profile];
+    if (!value || value.trim() === '') {
+      missingFields.push(field.label);
+    }
+  });
+
+  const completionPercentage = Math.round(
+    ((requiredFields.length - missingFields.length) / requiredFields.length) *
+      100
+  );
+
+  return {
+    isComplete: missingFields.length === 0,
+    missingFields,
+    completionPercentage,
+  };
+};
