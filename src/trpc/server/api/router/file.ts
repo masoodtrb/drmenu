@@ -36,13 +36,18 @@ export const fileRouter = createTRPCRouter({
       const fileId = uuidv4();
       const fileName = `${fileId}${ext}`;
       const filePath = path.join(UPLOAD_DIR, fileName);
+
+      // Ensure upload directory exists
+      await fs.mkdir(UPLOAD_DIR, { recursive: true });
+
       // Save file to disk
       await fs.writeFile(filePath, buffer);
+
       // Create DB record
       const file = await ctx.db.file.create({
         data: {
           name,
-          path: filePath, // Store absolute or relative path, not public URL
+          path: fileName, // Store just the filename, not full path
           size: buffer.length,
           mimeType,
           published,
@@ -51,7 +56,17 @@ export const fileRouter = createTRPCRouter({
           publishedAt: published ? new Date() : null,
         },
       });
-      return { success: true, file };
+
+      return {
+        success: true,
+        file: {
+          id: file.id,
+          name: file.name,
+          url: `/api/files/${file.id}`, // Return the public URL using file ID
+          size: file.size,
+          mimeType: file.mimeType,
+        },
+      };
     }),
 
   // List files owned by the user
@@ -84,7 +99,7 @@ export const fileRouter = createTRPCRouter({
       }
       // Remove from disk (if local)
       if (file.storageType === 'local') {
-        const filePath = path.join(process.cwd(), 'public', file.path);
+        const filePath = path.join(UPLOAD_DIR, file.path);
         try {
           await fs.unlink(filePath);
         } catch (err: any) {
@@ -108,8 +123,8 @@ export const fileRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  // Download a file (stub)
-  download: publicProcedure
+  // Get file info and URL
+  getFileInfo: publicProcedure
     .input(z.object({ fileId: z.string() }))
     .query(async ({ ctx, input }) => {
       const file = await ctx.db.file.findUnique({
@@ -125,15 +140,38 @@ export const fileRouter = createTRPCRouter({
           message: 'Not allowed to access this file',
         });
       }
-      // Read file from disk
-      if (file.storageType === 'local') {
-        const buffer = await fs.readFile(file.path);
-        return buffer;
-      }
-      throw new TRPCError({
-        code: 'NOT_IMPLEMENTED',
-        message: 'Storage type not supported',
+
+      return {
+        id: file.id,
+        name: file.name,
+        url: `/api/files/${file.path}`, // This will be served by Next.js API route
+        size: file.size,
+        mimeType: file.mimeType,
+      };
+    }),
+
+  // Get file URL for serving (used by Next.js API route)
+  getFileUrl: publicProcedure
+    .input(z.object({ fileId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const file = await ctx.db.file.findUnique({
+        where: { id: input.fileId },
       });
+      if (!file || file.deletedAt) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'File not found' });
+      }
+      // Only allow if published
+      if (!file.published) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Not allowed to access this file',
+        });
+      }
+
+      return {
+        path: file.path,
+        mimeType: file.mimeType,
+      };
     }),
 
   // Publish a file (stub)

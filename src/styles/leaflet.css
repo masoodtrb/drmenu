@@ -1,0 +1,38 @@
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
+/* Custom styles for the map */
+.leaflet-container {
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content {
+  margin: 8px 12px;
+  line-height: 1.4;
+  font-size: 13px;
+}
+
+.leaflet-popup-tip {
+  background: white;
+  border: 1px solid #ccc;
+}
+
+/* Dark mode support */
+.dark .leaflet-popup-content-wrapper {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.dark .leaflet-popup-tip {
+  background: #1e293b;
+  border-color: #475569;
+}
+
+/* Custom marker styles */
+.leaflet-marker-icon {
+  filter: hue-rotate(120deg) saturate(1.2);
+}

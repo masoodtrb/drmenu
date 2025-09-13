@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './leaflet.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -178,4 +179,8 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.leaflet-marker-icon {
+  filter: none !important;
 }

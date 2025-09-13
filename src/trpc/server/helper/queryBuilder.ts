@@ -423,6 +423,15 @@ export class StoreQueryBuilder extends QueryBuilder {
           username: true,
         },
       },
+      StoreBranch: {
+        include: {
+          Category: {
+            include: {
+              Item: true,
+            },
+          },
+        },
+      },
       _count: {
         select: {
           StoreBranch: {

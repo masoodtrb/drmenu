@@ -101,6 +101,10 @@ model StoreType {
 model Store {
   id          String        @id @default(cuid())
   title       String
+  address     String?       @db.Text
+  phone       String?
+  latitude    Float?
+  longitude   Float?
   active      Boolean?      @default(false)
   userId      String
   createdAt   DateTime      @default(now()) @map("created_at")
@@ -154,14 +158,13 @@ model Category {
 model Item {
   id          String  @id @default(cuid())
   title       String
-  icon        String
   description String  @db.Text
   price       Decimal @db.Decimal(10, 2) // Price field for menu items
   currency    String  @default("USD") // Currency for the price
 
   active     Boolean?  @default(false)
   createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
   category   Category  @relation(fields: [categoryId], references: [id])
   categoryId String
@@ -174,14 +177,16 @@ model Item {
 
 // Junction table for Item and File relationship
 model ItemImage {
-  id        String   @id @default(cuid())
-  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  item      Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId    String
-  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  file      File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
   fileId    String
-  order     Int      @default(0) // For ordering images
-  isPrimary Boolean  @default(false) // Primary image for the item
-  createdAt DateTime @default(now()) @map("created_at")
+  order     Int       @default(0) // For ordering images
+  isPrimary Boolean   @default(false) // Primary image for the item
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@unique([itemId, fileId])
   @@map("item_image")

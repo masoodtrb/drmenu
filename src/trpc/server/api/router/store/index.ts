@@ -399,6 +399,28 @@ export const storeRouter = createTRPCRouter({
     }
   }),
 
+  // Get Store Types (for all users)
+  getMyStoreTypes: privateProcedure.query(async ({ ctx }) => {
+    try {
+      const storeTypes = await ctx.db.storeType.findMany({
+        where: {
+          deletedAt: null,
+        },
+        orderBy: {
+          title: 'asc',
+        },
+      });
+
+      return { storeTypes };
+    } catch (err: unknown) {
+      console.error(err);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch store types',
+      });
+    }
+  }),
+
   // Get My Stores (for STORE_ADMIN users)
   getMyStores: privateProcedure.query(async ({ ctx }) => {
     try {
@@ -467,6 +489,120 @@ export const storeRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch store',
+        });
+      }
+    }),
+
+  // Create My Store (for STORE_ADMIN users)
+  createMyStore: privateProcedure
+    .input(createStoreSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const {
+          title,
+          address,
+          phone,
+          latitude,
+          longitude,
+          storeTypeId,
+          active,
+        } = input;
+        const userId = ctx.user.id;
+
+        // Check if store type exists
+        const storeType = await ctx.db.storeType.findUnique({
+          where: { id: storeTypeId },
+        });
+
+        if (!storeType) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Store type not found',
+          });
+        }
+
+        // Check if store with same title already exists for this user
+        const existingStore = await ctx.db.store.findFirst({
+          where: {
+            title,
+            userId,
+            deletedAt: null,
+          },
+        });
+
+        if (existingStore) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Store with this title already exists',
+          });
+        }
+
+        // Create store with default branch in a transaction
+        const result = await ctx.db.$transaction(async tx => {
+          // Create the store
+          const store = await tx.store.create({
+            data: {
+              title,
+              address,
+              phone,
+              latitude,
+              longitude,
+              storeTypeId,
+              active,
+              userId,
+            },
+          });
+
+          // Create default branch for the store
+          const defaultBranch = await tx.storeBranch.create({
+            data: {
+              title: `${title} - شعبه اصلی`,
+              description: 'شعبه اصلی فروشگاه',
+              active: true,
+              storeId: store.id,
+              userId,
+            },
+          });
+
+          return { store, defaultBranch };
+        });
+
+        // Fetch the complete store data with relations
+        const storeWithRelations = await ctx.db.store.findUnique({
+          where: { id: result.store.id },
+          include: {
+            storeType: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+            StoreBranch: {
+              include: {
+                Category: {
+                  include: {
+                    Item: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        return {
+          success: true,
+          store: storeWithRelations,
+          defaultBranch: result.defaultBranch,
+        };
+      } catch (err: unknown) {
+        console.error(err);
+        if (err instanceof TRPCError) {
+          throw err;
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create store',
         });
       }
     }),

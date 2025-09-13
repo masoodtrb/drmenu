@@ -51,7 +51,6 @@ export const listCategoriesSchema = z.object({
 // Item validation schemas
 export const createItemSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title too long'),
-  icon: z.string().min(1, 'Icon is required').max(50, 'Icon too long'),
   description: z
     .string()
     .min(1, 'Description is required')
@@ -74,11 +73,6 @@ export const updateItemSchema = z.object({
     .min(1, 'Title is required')
     .max(100, 'Title too long')
     .optional(),
-  icon: z
-    .string()
-    .min(1, 'Icon is required')
-    .max(50, 'Icon too long')
-    .optional(),
   description: z
     .string()
     .min(1, 'Description is required')
@@ -93,6 +87,17 @@ export const updateItemSchema = z.object({
   active: z.boolean().optional(),
   categoryId: z.string().min(1, 'Category ID is required').optional(),
   imageIds: z.array(z.string()).optional(), // Array of file IDs for images
+  images: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        file: z.any().optional(),
+        preview: z.string().optional(),
+        isPrimary: z.boolean().optional(),
+        uploadedFileId: z.string().optional(),
+      })
+    )
+    .optional(), // Full images data with isPrimary information
 });
 
 export const getItemByIdSchema = z.object({

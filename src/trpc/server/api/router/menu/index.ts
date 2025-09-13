@@ -26,6 +26,44 @@ import {
 } from './validation';
 
 export const menuRouter = createTRPCRouter({
+  // ==================== DEBUG ENDPOINTS ====================
+
+  // Debug: List all branches for current user
+  listMyBranches: privateProcedure.query(async ({ ctx }) => {
+    try {
+      const userId = ctx.user.id;
+
+      const branches = await ctx.db.storeBranch.findMany({
+        where: {
+          userId,
+          deletedAt: null,
+        },
+        include: {
+          store: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return {
+        success: true,
+        branches,
+      };
+    } catch (err: unknown) {
+      console.error(err);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch branches',
+      });
+    }
+  }),
+
   // ==================== CATEGORY ENDPOINTS ====================
 
   // Create Category
@@ -37,6 +75,13 @@ export const menuRouter = createTRPCRouter({
         const userId = ctx.user.id;
 
         // Check if store branch exists and user has access
+        console.log(
+          'Creating category for storeBranchId:',
+          storeBranchId,
+          'userId:',
+          userId
+        );
+
         const storeBranch = await ctx.db.storeBranch.findFirst({
           where: {
             id: storeBranchId,
@@ -47,6 +92,22 @@ export const menuRouter = createTRPCRouter({
             store: true,
           },
         });
+
+        console.log('Found storeBranch:', storeBranch ? 'YES' : 'NO');
+
+        // Debug: Check what branches exist for this user
+        const userBranches = await ctx.db.storeBranch.findMany({
+          where: {
+            userId,
+            deletedAt: null,
+          },
+          select: {
+            id: true,
+            title: true,
+            storeId: true,
+          },
+        });
+        console.log('User branches:', userBranches);
 
         if (!storeBranch) {
           throw new TRPCError({
@@ -402,7 +463,6 @@ export const menuRouter = createTRPCRouter({
       try {
         const {
           title,
-          icon,
           description,
           price,
           currency,
@@ -440,6 +500,8 @@ export const menuRouter = createTRPCRouter({
           },
         });
 
+        console.log('existingItem', existingItem);
+
         if (existingItem) {
           throw new TRPCError({
             code: 'CONFLICT',
@@ -451,7 +513,6 @@ export const menuRouter = createTRPCRouter({
         const item = await ctx.db.item.create({
           data: {
             title,
-            icon,
             description,
             price,
             currency,
@@ -531,13 +592,13 @@ export const menuRouter = createTRPCRouter({
           item: itemWithImages,
         };
       } catch (err: unknown) {
-        console.error(err);
+        console.error('CreateItem error:', err);
         if (err instanceof TRPCError) {
           throw err;
         }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create item',
+          message: `Failed to create item: ${err instanceof Error ? err.message : 'Unknown error'}`,
         });
       }
     }),
@@ -735,7 +796,6 @@ export const menuRouter = createTRPCRouter({
         const {
           id,
           title,
-          icon,
           description,
           price,
           currency,
@@ -744,6 +804,8 @@ export const menuRouter = createTRPCRouter({
           imageIds,
         } = input;
         const userId = ctx.user.id;
+
+        console.log('UpdateItem input:', { id, title, imageIds });
 
         // Check if item exists and user has access
         const existingItem = await ctx.db.item.findFirst({
@@ -808,12 +870,13 @@ export const menuRouter = createTRPCRouter({
 
         const updateData: any = {};
         if (title !== undefined) updateData.title = title;
-        if (icon !== undefined) updateData.icon = icon;
         if (description !== undefined) updateData.description = description;
         if (price !== undefined) updateData.price = price;
         if (currency !== undefined) updateData.currency = currency;
         if (active !== undefined) updateData.active = active;
         if (categoryId !== undefined) updateData.categoryId = categoryId;
+
+        console.log('Updating item with data:', updateData);
 
         const item = await ctx.db.item.update({
           where: { id },
@@ -831,16 +894,15 @@ export const menuRouter = createTRPCRouter({
           },
         });
 
+        console.log('Item updated successfully:', item.id);
+
         // Update images if provided
         if (imageIds !== undefined) {
-          // Remove existing images
-          await ctx.db.itemImage.deleteMany({
-            where: { itemId: id },
-          });
+          console.log('Updating images for item:', id, 'imageIds:', imageIds);
+          console.log('Images data:', input.images);
 
-          // Add new images if provided
+          // Verify that all files exist and belong to the user
           if (imageIds.length > 0) {
-            // Verify that all files exist and belong to the user
             const files = await ctx.db.file.findMany({
               where: {
                 id: { in: imageIds },
@@ -849,25 +911,96 @@ export const menuRouter = createTRPCRouter({
               },
             });
 
+            console.log(
+              'Found files:',
+              files.length,
+              'Expected:',
+              imageIds.length
+            );
+
             if (files.length !== imageIds.length) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message: 'Some files not found or access denied',
               });
             }
-
-            // Create item images
-            const itemImages = imageIds.map((fileId, index) => ({
-              itemId: id,
-              fileId,
-              order: index,
-              isPrimary: index === 0, // First image is primary
-            }));
-
-            await ctx.db.itemImage.createMany({
-              data: itemImages,
-            });
           }
+
+          // Use transaction to ensure atomicity
+          await ctx.db.$transaction(async tx => {
+            // 1. Check existing images before deletion
+            const existingImages = await tx.itemImage.findMany({
+              where: {
+                itemId: id,
+              },
+            });
+            console.log(
+              'Existing ItemImages before deletion:',
+              existingImages.length,
+              existingImages
+            );
+
+            // 2. Use a more aggressive deletion approach
+            if (imageIds.length > 0) {
+              // Remove duplicates from imageIds array
+              const uniqueImageIds = [...new Set(imageIds)];
+              console.log('Original imageIds:', imageIds);
+              console.log('Unique imageIds:', uniqueImageIds);
+
+              // Delete all existing images for this item using raw SQL to ensure it works
+              await tx.$executeRaw`
+                DELETE FROM item_image 
+                WHERE "itemId" = ${id}
+              `;
+
+              // Verify deletion worked
+              const remainingImages = await tx.itemImage.findMany({
+                where: {
+                  itemId: id,
+                },
+              });
+              console.log(
+                'Remaining ItemImages after raw deletion:',
+                remainingImages.length
+              );
+
+              // Create new ones using isPrimary information from images array
+              const itemImages = uniqueImageIds.map((fileId, index) => {
+                // Find the corresponding image data to get isPrimary information
+                const imageData = input.images?.find(
+                  img => img.uploadedFileId === fileId
+                );
+                const isPrimary = imageData?.isPrimary ?? index === 0; // Default to first image if not specified
+
+                return {
+                  itemId: id,
+                  fileId,
+                  order: index,
+                  isPrimary,
+                };
+              });
+
+              console.log('ItemImages to create:', itemImages);
+
+              // Use individual creates instead of createMany to get better error handling
+              for (const itemImage of itemImages) {
+                await tx.itemImage.create({
+                  data: itemImage,
+                });
+              }
+
+              console.log('Created item images:', itemImages.length);
+            } else {
+              // If no images provided, delete all existing images using raw SQL
+              await tx.$executeRaw`
+                DELETE FROM item_image 
+                WHERE "itemId" = ${id}
+              `;
+              console.log(
+                'Deleted all images for item (no new images provided)'
+              );
+            }
+          });
         }
 
         // Fetch the item with images
@@ -884,6 +1017,9 @@ export const menuRouter = createTRPCRouter({
               },
             },
             images: {
+              where: {
+                deletedAt: null,
+              },
               include: {
                 file: true,
               },
@@ -899,13 +1035,13 @@ export const menuRouter = createTRPCRouter({
           item: itemWithImages,
         };
       } catch (err: unknown) {
-        console.error(err);
+        console.error('UpdateItem error:', err);
         if (err instanceof TRPCError) {
           throw err;
         }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update item',
+          message: `Failed to update item: ${err instanceof Error ? err.message : 'Unknown error'}`,
         });
       }
     }),
@@ -930,6 +1066,13 @@ export const menuRouter = createTRPCRouter({
               },
             },
           },
+          include: {
+            images: {
+              include: {
+                file: true,
+              },
+            },
+          },
         });
 
         if (!item) {
@@ -944,6 +1087,18 @@ export const menuRouter = createTRPCRouter({
           where: { id },
           data: { deletedAt: new Date() },
         });
+
+        // Clean up associated files (soft delete them)
+        if (item.images.length > 0) {
+          const fileIds = item.images.map(img => img.fileId);
+          await ctx.db.file.updateMany({
+            where: {
+              id: { in: fileIds },
+              ownerId: userId,
+            },
+            data: { deletedAt: new Date() },
+          });
+        }
 
         return {
           success: true,
